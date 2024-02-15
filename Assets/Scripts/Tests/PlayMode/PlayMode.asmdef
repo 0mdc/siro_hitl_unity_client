@@ -1,6 +1,6 @@
 {
     "name": "PlayMode",
-    "rootNamespace": "Habitat.Tests.PlayMode",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

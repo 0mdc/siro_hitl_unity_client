@@ -1,6 +1,6 @@
 {
     "name": "EditMode",
-    "rootNamespace": "Habitat.Tests.EditMode",
+    "rootNamespace": "",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

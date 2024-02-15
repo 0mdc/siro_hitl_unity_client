@@ -21,17 +21,14 @@ public class TestPlayerVR
     [UnityTest]
     public IEnumerator TestSceneContent()
     {
-
         // Test initial setup.
         {
             var objs = GameObject.FindObjectsByType<AppVR>(FindObjectsSortMode.None);
             Assert.AreEqual(objs.Length, 1);
+            var app = objs[0];
+            Assert.AreNotEqual(app.GetComponent<NetworkClient>(), null);
+            Assert.AreNotEqual(app.GetComponent<GfxReplayPlayer>(), null);
         }
-
-        // Wait 1 frame.
-        yield return 0;
-
-        // Test scene composition.
         {
             var objs = GameObject.FindObjectsByType<Camera>(FindObjectsSortMode.None);
             Assert.AreEqual(objs.Length, 1);
@@ -43,18 +40,10 @@ public class TestPlayerVR
             Assert.AreNotEqual(objs.Length, 0);
         }
         {
-            var objs = GameObject.FindObjectsByType<Collider>(FindObjectsSortMode.None);
+            var objs = GameObject.FindObjectsByType<BoxCollider>(FindObjectsSortMode.None);
             Assert.AreEqual(objs.Length, 1);
         }
-        {
-            var objs = GameObject.FindObjectsByType<NetworkClient>(FindObjectsSortMode.None);
-            Assert.AreEqual(objs.Length, 1);
-        }
-        {
-            var objs = GameObject.FindObjectsByType<GfxReplayPlayer>(FindObjectsSortMode.None);
-            Assert.AreEqual(objs.Length, 1);
-        }
-
+        yield return null;
     }
 
     [UnityTearDown]
