@@ -73,8 +73,7 @@ public class NetworkClient : MonoBehaviour
     void Start()
     {
         // Read URL query parameters
-        _connectionParams = GetConnectionParameters();
-
+        _connectionParams = GetConnectionParameters(Application.absoluteURL);
         GetServerHostnameAndPort(_connectionParams, 
                                  out string? _serverHostnameOverride,
                                  out int? _serverPortOverride);
@@ -283,7 +282,7 @@ public class NetworkClient : MonoBehaviour
             UpdateClientState();
 
             // Only include connection parameters in the first successful transmission.
-            if (_firstTransmission && _connectionParams?.Count > 0)
+            if (_firstTransmission && _connectionParams != null && _connectionParams.Count > 0)
             {
                 _clientState.connection_params_dict = _connectionParams;
             }
@@ -327,12 +326,11 @@ public class NetworkClient : MonoBehaviour
         return mainWebSocket != null && mainWebSocket.State == WebSocketState.Open;
     }
 
-    private Dictionary<string, string> GetConnectionParameters()
+    static public Dictionary<string, string> GetConnectionParameters(string url)
     {
         var output  = new Dictionary<string, string>();
 
-        string url = Application.absoluteURL;
-        if (url?.Length > 0)
+        if (url != null && url.Length > 0)
         {
             var splitUrl = url.Split('?');
             if (splitUrl.Length == 2)
@@ -342,7 +340,10 @@ public class NetworkClient : MonoBehaviour
 
                 foreach (var key in paramsCollection.AllKeys)
                 {
-                    output[key] = paramsCollection[key];
+                    if (key != null && key.Length > 0)
+                    {
+                        output[key] = paramsCollection[key];
+                    }
                 }
             }
         }
@@ -350,12 +351,17 @@ public class NetworkClient : MonoBehaviour
         return output;
     }
 
-    private void GetServerHostnameAndPort(Dictionary<string, string> queryParams,                                   
+    static public void GetServerHostnameAndPort(Dictionary<string, string> queryParams,                                   
                                          out string? _serverHostnameOverride,
                                          out int? _serverPortOverride)
     {
         _serverHostnameOverride = null;
         _serverPortOverride = null;
+
+        if (queryParams == null)
+        {
+            return;
+        }
 
         // Override server URL from query arguments.
         if (queryParams.TryGetValue("server_hostname", out string serverHostnameString))
@@ -373,7 +379,9 @@ public class NetworkClient : MonoBehaviour
         // Override server port from query arguments.
         if (queryParams.TryGetValue("server_port", out string serverPortString))
         {
-            if (int.TryParse(serverPortString, out int port))
+            if (int.TryParse(serverPortString, out int port) &&
+                port >= 0 &&
+                port <= 65535)
             {
                 _serverPortOverride = port;
             }
