@@ -54,5 +54,4 @@ public class MouseInputData
     public ButtonInputData buttons = new ButtonInputData();
 
     public float[] scrollDelta = new float[2];
-    public float[] screenPosition = new float[2];
 }

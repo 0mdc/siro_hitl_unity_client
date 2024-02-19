@@ -81,8 +81,6 @@ public class InputTrackerMouse : MonoBehaviour, IClientStateProducer
             }
             _inputData.scrollDelta[0] = _scrollDelta.x;
             _inputData.scrollDelta[1] = _scrollDelta.y;
-            _inputData.screenPosition[0] = _screenPosition.x;
-            _inputData.screenPosition[1] = _screenPosition.y;
         }
 
         state.mouse = _inputData;
