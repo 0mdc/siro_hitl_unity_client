@@ -89,7 +89,7 @@ namespace Habitat.Tests.EditMode
         public void TestGetServerHostname()
         {
             string url;
-            string? host;
+            string host;
             Dictionary<string, string> parameters;
 
             // Valid cases.

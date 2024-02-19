@@ -74,8 +74,8 @@ public class NetworkClient : MonoBehaviour
     {
         // Read URL query parameters
         _connectionParams = ConnectionParameters.GetConnectionParameters(Application.absoluteURL);
-        string? _serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
-        int? _serverPortOverride = ConnectionParameters.GetServerPort(_connectionParams);
+        var _serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
+        var _serverPortOverride = ConnectionParameters.GetServerPort(_connectionParams);
 
         // Set up server hostnames and port.
         string[] serverLocations = _serverHostnameOverride != null ? 
