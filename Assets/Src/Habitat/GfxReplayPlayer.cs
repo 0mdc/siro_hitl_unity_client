@@ -173,9 +173,12 @@ public class GfxReplayPlayer : MonoBehaviour
         if (_useKeyframeInterpolation)
         {
             ProcessStateUpdatesForInterpolation(keyframe);
-        } else
+        }
+        else
         {
+            #pragma warning disable CS0162  // Suppress 'Unreachable Code' warning.
             ProcessStateUpdatesImmediate(keyframe);
+            #pragma warning restore CS0162
         }
 
     }
