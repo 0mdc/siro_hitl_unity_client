@@ -1,8 +1,15 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Allows to control a skinned/rigged mesh from gfx-replay "RigCreation" and "RigUpdate" keyframes.
+/// The component is expected to be added to the root object of a skinned mesh.
+/// </summary>
 public class GfxReplaySkinnedMesh : MonoBehaviour
 {
+    /// <summary>
+    /// Gfx-replay rigId associated with this skinned mesh.
+    /// </summary>
     public int rigId {get; set;} = Constants.ID_UNDEFINED;
 
     private Transform[] _bones;
@@ -11,6 +18,8 @@ public class GfxReplaySkinnedMesh : MonoBehaviour
 
     void Awake()
     {
+        // Find the skinned mesh renderer.
+        // This component is automatically created by the asset pipeline upon importing a skinned mesh.
         _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
         if (_skinnedMeshRenderer == null)
         {

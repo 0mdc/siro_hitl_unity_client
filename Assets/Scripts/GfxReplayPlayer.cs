@@ -337,6 +337,8 @@ public class GfxReplayPlayer : MonoBehaviour
                         _skinnedMeshes.Remove(skinnedMesh.rigId);
                     }
                 }
+                
+                Destroy(_instanceDictionary[key]);
             }
             StartCoroutine(ReleaseUnusedMemory(
                 // Wait for memory clean-up to be finished before executing KeyframePostUpdate()
