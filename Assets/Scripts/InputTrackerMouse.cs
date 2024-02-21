@@ -5,9 +5,6 @@ public class InputTrackerMouse : MonoBehaviour, IClientStateProducer
     // Left: 0, Right: 1, Middle: 2
     const int MOUSE_BUTTON_COUNT = 3;
 
-    [Tooltip("Camera from which mouse screen coordinates are calculated from.")]
-    public Camera _camera;
-
     MouseInputData _inputData = new MouseInputData();
 
     bool[] _buttonHeld;
@@ -15,8 +12,6 @@ public class InputTrackerMouse : MonoBehaviour, IClientStateProducer
     bool[] _buttonDown;
 
     Vector2 _scrollDelta = Vector2.zero;
-
-    Vector2 _screenPosition = Vector2.zero;
 
     void Awake()
     {
@@ -64,11 +59,6 @@ public class InputTrackerMouse : MonoBehaviour, IClientStateProducer
         _inputData.buttons.buttonHeld.Clear();
         _inputData.buttons.buttonUp.Clear();
         _inputData.buttons.buttonDown.Clear();
-
-        // Normalized mouse coordinates
-        var pixelCoordMousePosition = Input.mousePosition;
-        _screenPosition.x = pixelCoordMousePosition.x / _camera.pixelWidth;
-        _screenPosition.y = pixelCoordMousePosition.y / _camera.pixelHeight;
 
         if (Input.mousePresent) // TODO: Don't send mouse info if we don't have it
         {
