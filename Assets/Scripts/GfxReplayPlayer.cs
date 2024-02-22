@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class GfxReplayPlayer : MonoBehaviour
+public class GfxReplayPlayer : IUpdatable
 {
     public struct MovementData
     {
@@ -20,21 +20,16 @@ public class GfxReplayPlayer : MonoBehaviour
     private Dictionary<int, GameObject> _instanceDictionary = new Dictionary<int, GameObject>();
     private Dictionary<string, Load> _loadDictionary = new Dictionary<string, Load>();
     IKeyframeMessageConsumer[] _messageConsumers;
-
     private Dictionary<int, MovementData> _movementData = new Dictionary<int, MovementData>();
     private float _keyframeInterval = 0.1f;  // assume 10Hz, but see also SetKeyframeRate
     const bool _useKeyframeInterpolation = true;
     Dictionary<int, GfxReplaySkinnedMesh> _skinnedMeshes = new Dictionary<int, GfxReplaySkinnedMesh>();
+    CoroutineContainer _coroutines;
 
-    void Awake()
+    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers)
     {
-        // Search the codebase for available IKeyframeMessageConsumers.
-        // They should be added to this GameObject via the Editor (or programmatically, before adding this Component).
-        _messageConsumers = GetComponents<IKeyframeMessageConsumer>();
-        if (_messageConsumers.Length == 0)
-        {
-            Debug.LogWarning("No IKeyframeMessageConsumer could be found. The client will have limited functionality.");
-        }
+        _messageConsumers = messageConsumers;
+        _coroutines = CoroutineContainer.Create("GfxReplayPlayer");
     }
 
     public void SetKeyframeRate(float rate)
@@ -219,8 +214,14 @@ public class GfxReplayPlayer : MonoBehaviour
         }
 
     }
-    private void Update()
+
+    public void Update()
     {
+        foreach (var messageConsumer in _messageConsumers)
+        {
+            messageConsumer.Update();
+        }
+
         if (_useKeyframeInterpolation)
         {
             UpdateForInterpolatedStateUpdates();
@@ -268,7 +269,7 @@ public class GfxReplayPlayer : MonoBehaviour
                     continue;
                 }
 
-                GameObject instance = Instantiate(prefab);
+                GameObject instance = GameObject.Instantiate(prefab);
 
                 if (creationItem.creation.scale != null)
                 {
@@ -338,9 +339,9 @@ public class GfxReplayPlayer : MonoBehaviour
                     }
                 }
                 
-                Destroy(_instanceDictionary[key]);
+                GameObject.Destroy(_instanceDictionary[key]);
             }
-            StartCoroutine(ReleaseUnusedMemory(
+            _coroutines.StartCoroutine(ReleaseUnusedMemory(
                 // Wait for memory clean-up to be finished before executing KeyframePostUpdate()
                 () => {KeyframePostUpdate(keyframe);})
             );
@@ -367,9 +368,9 @@ public class GfxReplayPlayer : MonoBehaviour
     {
         foreach (var kvp in _instanceDictionary)
         {
-            Destroy(kvp.Value);
+            GameObject.Destroy(kvp.Value);
         }
-        StartCoroutine(ReleaseUnusedMemory());
+        _coroutines.StartCoroutine(ReleaseUnusedMemory());
         Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
         _instanceDictionary.Clear();
     }

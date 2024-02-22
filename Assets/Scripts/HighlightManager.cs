@@ -1,10 +1,9 @@
 using System;
 using UnityEngine;
 
-public class HighlightManager : MonoBehaviour, IKeyframeMessageConsumer
-{
-    const float TWO_PI = Mathf.PI * 2.0f;
-    
+[CreateAssetMenu(fileName = "HighlightManagerConfig", menuName = "Habitat/HighlightManager.Config", order = 1)]
+public class HighlightManagerConfig : ScriptableObject
+{    
     [Tooltip("Size of the highlight object pool.\nIf the amount of highlights received from the server is higher that this number, the excess will be discarded.\nThis value cannot be changed during runtime.")]
     public int poolSize = 32;
 
@@ -22,19 +21,29 @@ public class HighlightManager : MonoBehaviour, IKeyframeMessageConsumer
 
     [Tooltip("Base radius of the highlight circles, in meters. It is multiplied by the radius received from server messages.")]
     public float highlightBaseRadius = 1.0f;
+}
 
+public class HighlightManager : IKeyframeMessageConsumer
+{
+    const float TWO_PI = Mathf.PI * 2.0f;
+
+    private HighlightManagerConfig _config;
+    private GameObject _container;
     private LineRenderer[] _highlightPool;
     private int _activeHighlightCount = 0;
 
-    // Start is called before the first frame update
-    void Awake()
+    public HighlightManager(HighlightManagerConfig config)
     {
-        _highlightPool = new LineRenderer[poolSize];
-        float _arcSegmentLength = TWO_PI / circleResolution;
+        _config = config;
+
+        _container = new GameObject("HighlightManager");
+
+        _highlightPool = new LineRenderer[_config.poolSize];
+        float _arcSegmentLength = TWO_PI / _config.circleResolution;
 
         // Construct a pool of highlight line renderers
         GameObject container = new GameObject("Highlights");
-        container.transform.parent = transform;
+        container.transform.parent = _container.transform;
         for (int i = 0; i < _highlightPool.Length; ++i)
         {
             GameObject highlight = new GameObject($"Highlight {i}");
@@ -44,16 +53,16 @@ public class HighlightManager : MonoBehaviour, IKeyframeMessageConsumer
             lineRenderer.enabled = false;
             lineRenderer.loop = true;
             lineRenderer.useWorldSpace = false;
-            lineRenderer.startColor = highlightColor;
-            lineRenderer.endColor = highlightColor;
-            lineRenderer.startWidth = highlightWidth;
-            lineRenderer.endWidth = highlightWidth;
-            lineRenderer.materials = highlightMaterials;
-            lineRenderer.positionCount = circleResolution;
-            for (int j = 0; j < circleResolution; ++j)
+            lineRenderer.startColor = config.highlightColor;
+            lineRenderer.endColor = config.highlightColor;
+            lineRenderer.startWidth = config.highlightWidth;
+            lineRenderer.endWidth = config.highlightWidth;
+            lineRenderer.materials = config.highlightMaterials;
+            lineRenderer.positionCount = config.circleResolution;
+            for (int j = 0; j < config.circleResolution; ++j)
             {
-                float xOffset = highlightBaseRadius * Mathf.Sin(j * _arcSegmentLength);
-                float yOffset = highlightBaseRadius * Mathf.Cos(j * _arcSegmentLength);
+                float xOffset = config.highlightBaseRadius * Mathf.Sin(j * _arcSegmentLength);
+                float yOffset = config.highlightBaseRadius * Mathf.Cos(j * _arcSegmentLength);
                 lineRenderer.SetPosition(j, new Vector3(xOffset, yOffset, 0.0f));
             }
             _highlightPool[i] = lineRenderer;
@@ -62,8 +71,6 @@ public class HighlightManager : MonoBehaviour, IKeyframeMessageConsumer
 
     public void ProcessMessage(Message message)
     {
-        if (!enabled) return;
-
         // Disable all highlights in the pool
         for (int i = 0; i < _activeHighlightCount; ++i)
         {
@@ -91,4 +98,6 @@ public class HighlightManager : MonoBehaviour, IKeyframeMessageConsumer
             }
         }
     }
+
+    public void Update() {}
 }

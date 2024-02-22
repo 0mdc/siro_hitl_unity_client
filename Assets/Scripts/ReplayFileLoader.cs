@@ -2,24 +2,19 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Assertions;
 
-public class ReplayFileLoader : MonoBehaviour
+public class ReplayFileLoader : IUpdatable
 {
-    [SerializeField]
-    private TextAsset jsonFile; // Drag your JSON file onto this field in the inspector
-
     private KeyframeWrapper _keyframeWrapper;
     private GfxReplayPlayer _player;
     private int _nextKeyframeIdx = 0;
 
-    void Start()
+    public ReplayFileLoader(GfxReplayPlayer player, TextAsset keyframes)
     {
-        _player = GetComponent<GfxReplayPlayer>();
-        Assert.IsTrue(_player);  // our object should have a GfxReplayPlayer
+        _player = player;
 
-        _keyframeWrapper = JsonUtility.FromJson<KeyframeWrapper>(jsonFile.text);
-
+        _keyframeWrapper = JsonUtility.FromJson<KeyframeWrapper>(keyframes.text);
         Assert.IsTrue(_keyframeWrapper.keyframes.Length > 0);
-        _nextKeyframeIdx = 0;
+
         NextKeyframe();
     }
 
@@ -34,9 +29,9 @@ public class ReplayFileLoader : MonoBehaviour
         _nextKeyframeIdx++;
     }
 
-    void Update()
+    public void Update()
     {
-        // if (Keyboard.current.spaceKey.wasPressedThisFrame)
+        //TODO
         if (Keyboard.current.spaceKey.isPressed)
         {
                 NextKeyframe();
