@@ -14,6 +14,9 @@ public class AppMouseKeyboard : MonoBehaviour
     [Tooltip("Default server locations.")]
     [SerializeField] private string[] _defaultServerLocations = new string[]{ "127.0.01:8888" };
 
+    [Tooltip("If specified, the keyframe will be played upon launching the client.")]
+    [SerializeField] TextAsset _testKeyframe;
+
     [Header("Rendering Configuration")]
     [Tooltip("Main camera.")]
     [SerializeField] private Camera _camera;
@@ -36,6 +39,7 @@ public class AppMouseKeyboard : MonoBehaviour
     GfxReplayPlayer _gfxReplayPlayer;
     NetworkClient _networkClient;
     OnlineStatusDisplayHandler _onlineStatusDisplayHandler;
+    ReplayFileLoader _replayFileLoader;
 
     protected void Awake()
     {
@@ -60,15 +64,7 @@ public class AppMouseKeyboard : MonoBehaviour
         _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers);
         _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers);
         _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_networkClient, _offlineIcon);
-
-        // If the local replay file loader component is enabled, disable networking.
-        // This is done in the Editor.
-        //var replayFileLoader = gameObject.GetComponent<ReplayFileLoader>();
-        //if (replayFileLoader.enabled)
-        //{
-        //    Debug.LogWarning("Replay file loader enabled. Disabling network client.");
-        //    _networkClient.enabled = false;
-        //}
+        _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
     }
 
     void Update()
@@ -76,6 +72,7 @@ public class AppMouseKeyboard : MonoBehaviour
         _gfxReplayPlayer.Update();
         _networkClient.Update();
         _onlineStatusDisplayHandler.Update();
+        _replayFileLoader.Update();
     }
 
     void OnDestroy()

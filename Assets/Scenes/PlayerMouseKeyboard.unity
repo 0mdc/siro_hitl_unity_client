@@ -369,6 +369,7 @@ MonoBehaviour:
   _mouseoverForTooltip: 0
   _defaultServerLocations:
   - 127.0.01:8888
+  _testKeyframe: {fileID: 0}
   _camera: {fileID: 389742605}
   _highlightManagerConfig: {fileID: 11400000, guid: bf94fbd9af44f3ca2a4affd78a7db199, type: 2}
   _offlineIcon: {fileID: 683323228}

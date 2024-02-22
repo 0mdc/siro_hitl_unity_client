@@ -170,6 +170,7 @@ MonoBehaviour:
   _mouseoverForTooltip: 0
   _defaultServerLocations:
   - 127.0.01:8888
+  _testKeyframe: {fileID: 0}
   _camera: {fileID: 878938826}
   _xrLeftController: {fileID: 2075813056}
   _xrRightController: {fileID: 1032753413}

@@ -4,12 +4,18 @@ using UnityEngine.Assertions;
 
 public class ReplayFileLoader : IUpdatable
 {
+    private bool _enabled = true;
     private KeyframeWrapper _keyframeWrapper;
     private GfxReplayPlayer _player;
     private int _nextKeyframeIdx = 0;
 
     public ReplayFileLoader(GfxReplayPlayer player, TextAsset keyframes)
     {
+        if (keyframes == null)
+        {
+            _enabled = false;
+            return;
+        }
         _player = player;
 
         _keyframeWrapper = JsonUtility.FromJson<KeyframeWrapper>(keyframes.text);
@@ -20,7 +26,7 @@ public class ReplayFileLoader : IUpdatable
 
     private void NextKeyframe()
     {
-        if (_nextKeyframeIdx >= _keyframeWrapper.keyframes.Length)
+        if (!_enabled || _nextKeyframeIdx >= _keyframeWrapper.keyframes.Length)
         {
             return;
         }
@@ -31,10 +37,13 @@ public class ReplayFileLoader : IUpdatable
 
     public void Update()
     {
-        //TODO
+        if (!_enabled)
+        {
+            return;
+        }
         if (Keyboard.current.spaceKey.isPressed)
         {
-                NextKeyframe();
+            NextKeyframe();
         }
     }
 }
