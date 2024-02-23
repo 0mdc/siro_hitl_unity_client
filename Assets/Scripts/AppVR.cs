@@ -78,7 +78,7 @@ public class AppVR : MonoBehaviour
         _avatarPositionHandler = new AvatarPositionHandler(_camera.gameObject, _xrOrigin);
         _highlightManager = new HighlightManager(_highlightManagerConfig);
         _loadingEffectHandler = new LoadingEffectHandler();
-        _textRenderer = new TextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent);
+        _textRenderer = new TextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent, _camera);
         _navmeshHelper = new NavmeshHelper();
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {

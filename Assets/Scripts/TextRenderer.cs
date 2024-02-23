@@ -9,20 +9,21 @@ public class TextRenderer : IKeyframeMessageConsumer
     GameObject _textPanelRoot;
     TextMeshPro _textComponent;
     Transform _targetTransform;
+    Camera _camera;
 
-    public TextRenderer(float uiPlaneDistance, GameObject textPanelRoot, TextMeshPro textComponent)
+    public TextRenderer(float uiPlaneDistance, GameObject textPanelRoot, TextMeshPro textComponent, Camera camera)
     {
         _uiPlaneDistance = uiPlaneDistance;
         _textPanelRoot = textPanelRoot;
         _textComponent = textComponent;
+        _camera = camera;
         _targetTransform = new GameObject("TextRenderer Target transform").transform;
     }
 
     public void Update()
     {
-        Camera camera = Camera.main;
-        _targetTransform.transform.position = camera.transform.position + camera.transform.forward * _uiPlaneDistance;
-        _targetTransform.transform.LookAt(camera.transform, Vector3.up);
+        _targetTransform.transform.position = _camera.transform.position + _camera.transform.forward * _uiPlaneDistance;
+        _targetTransform.transform.LookAt(_camera.transform, Vector3.up);
         _targetTransform.transform.Rotate(Vector3.up, 180.0f, Space.Self);
 
         if (_textPanelRoot.activeSelf)
