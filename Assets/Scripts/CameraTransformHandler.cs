@@ -1,11 +1,13 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraTransformHandler : MonoBehaviour, IKeyframeMessageConsumer
+public class CameraTransformHandler : IKeyframeMessageConsumer
 {
-    [Tooltip("Camera to manipulate upon receiving server updates.")]
-    public Camera _camera;
+    Camera _camera;
+
+    public CameraTransformHandler(Camera camera)
+    {
+        _camera = camera;
+    }
 
     public void ProcessMessage(Message message)
     {
@@ -14,4 +16,6 @@ public class CameraTransformHandler : MonoBehaviour, IKeyframeMessageConsumer
             Camera.main.transform.rotation = CoordinateSystem.ToUnityQuaternion(message.camera.rotation);
         }
     }
+
+    public void Update() {}
 }
