@@ -23,6 +23,9 @@ public class AppVR : MonoBehaviour
     [Tooltip("Main camera (XR camera).")]
     [SerializeField] private Camera _camera;
 
+    [Tooltip("Global application configuration.")]
+    [SerializeField] private AppConfig _appConfig;
+
     [Tooltip("GameObject instance of the left XR controller.")]
     [SerializeField] private GameObject _xrLeftController;
 
@@ -31,9 +34,6 @@ public class AppVR : MonoBehaviour
 
     [Tooltip("Root GameObject of the XR camera and controllers.")]
     [SerializeField] private GameObject _xrOrigin;
-
-    [Tooltip("Configuration for the highlight manager.")]
-    [SerializeField] private HighlightManagerConfig _highlightManagerConfig;
 
     [Tooltip("Icon that is displayed when connection is lost.")]
     [SerializeField] private GameObject _offlineIcon;
@@ -76,7 +76,7 @@ public class AppVR : MonoBehaviour
 
         // Initialize IKeyframeMessageConsumers.
         _avatarPositionHandler = new AvatarPositionHandler(_camera.gameObject, _xrOrigin);
-        _highlightManager = new HighlightManager(_highlightManagerConfig, _camera);
+        _highlightManager = new HighlightManager(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _textRenderer = new TextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent, _camera);
         _navmeshHelper = new NavmeshHelper();

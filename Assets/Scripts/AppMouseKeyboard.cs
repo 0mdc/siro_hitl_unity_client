@@ -1,4 +1,3 @@
-using TMPro;
 using UnityEngine;
 
 /// <summary>
@@ -21,8 +20,8 @@ public class AppMouseKeyboard : MonoBehaviour
     [Tooltip("Main camera.")]
     [SerializeField] private Camera _camera;
 
-    [Tooltip("Configuration for the highlight manager.")]
-    [SerializeField] private HighlightManagerConfig _highlightManagerConfig;
+    [Tooltip("Global application configuration.")]
+    [SerializeField] private AppConfig _appConfig;
 
     [Tooltip("Icon that is displayed when connection is lost.")]
     [SerializeField] private GameObject _offlineIcon;
@@ -46,7 +45,7 @@ public class AppMouseKeyboard : MonoBehaviour
     protected void Awake()
     {
         // Initialize IKeyframeMessageConsumers.
-        _highlightManager = new HighlightManager(_highlightManagerConfig, _camera);
+        _highlightManager = new HighlightManager(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _cameraTransformHandler = new CameraTransformHandler(_camera);
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]

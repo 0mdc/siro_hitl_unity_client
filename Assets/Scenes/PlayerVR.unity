@@ -172,10 +172,10 @@ MonoBehaviour:
   - 127.0.01:8888
   _testKeyframe: {fileID: 0}
   _camera: {fileID: 878938826}
+  _appConfig: {fileID: 11400000, guid: 5aca4711f6ee3f6faa47e80cb8b6abee, type: 2}
   _xrLeftController: {fileID: 2075813056}
   _xrRightController: {fileID: 1032753413}
   _xrOrigin: {fileID: 2109134565}
-  _highlightManagerConfig: {fileID: 11400000, guid: bf94fbd9af44f3ca2a4affd78a7db199, type: 2}
   _offlineIcon: {fileID: 1473937394}
   _textPanelRoot: {fileID: 897124556}
   _textComponent: {fileID: 897124558}
