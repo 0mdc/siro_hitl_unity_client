@@ -3,6 +3,11 @@ using UnityEngine;
 
 /// <summary>
 /// Component that acts as a container for coroutines for usage by non-MonoBehavior objects.
+/// See: https://docs.unity3d.com/Manual/Coroutines.html
+/// 
+/// Note that the coroutine functions using a string parameter cannot be used with this object.
+/// They require the emitter to be a MonoBehaviour because it uses reflection tricks under the hood.
+/// Use the newer IEnumerator-based functions instead.
 /// </summary>
 public class CoroutineContainer : MonoBehaviour
 {
