@@ -300,10 +300,6 @@ public class GfxReplayPlayer : IUpdatable
                 {
                     skinnedMesh.configureRigInstance(rigCreation.boneNames);
                 }
-                else
-                {
-                    Debug.LogError($"Rig ID {rigId} is not associated to a known object.");
-                }
             }
         }
 
@@ -315,10 +311,6 @@ public class GfxReplayPlayer : IUpdatable
                 if (_skinnedMeshes.TryGetValue(rigId, out GfxReplaySkinnedMesh skinnedMesh))
                 {
                     skinnedMesh.setPose(rigUpdate.pose);
-                }
-                else
-                {
-                    Debug.LogError($"Rig ID {rigId} is not associated to a known object.");
                 }
             }
         }
