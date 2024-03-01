@@ -68,7 +68,7 @@ public class NetworkClient : IUpdatable
         _connectionParams = GetConnectionParameters();
 
         GetServerHostnameAndPort(_connectionParams, 
-                                 out string? _serverHostnameOverride,
+                                 out string _serverHostnameOverride,
                                  out int? _serverPortOverride);
 
         // Set up server hostnames and port.
@@ -360,7 +360,7 @@ public class NetworkClient : IUpdatable
     }
 
     private void GetServerHostnameAndPort(Dictionary<string, string> queryParams,                                   
-                                         out string? _serverHostnameOverride,
+                                         out string _serverHostnameOverride,
                                          out int? _serverPortOverride)
     {
         _serverHostnameOverride = null;

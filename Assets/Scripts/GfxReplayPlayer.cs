@@ -169,10 +169,14 @@ public class GfxReplayPlayer : IUpdatable
         if (_useKeyframeInterpolation)
         {
             ProcessStateUpdatesForInterpolation(keyframe);
-        } else
+        }
+        // Suppress unreachable code.
+        #pragma warning disable 0162 
+        else
         {
             ProcessStateUpdatesImmediate(keyframe);
         }
+        #pragma warning restore 0162
 
     }
 
