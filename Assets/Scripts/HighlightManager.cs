@@ -28,13 +28,15 @@ public class HighlightManager : IKeyframeMessageConsumer
     const float TWO_PI = Mathf.PI * 2.0f;
 
     private HighlightManagerConfig _config;
+    private Camera _camera;
     private GameObject _container;
     private LineRenderer[] _highlightPool;
     private int _activeHighlightCount = 0;
 
-    public HighlightManager(HighlightManagerConfig config)
+    public HighlightManager(HighlightManagerConfig config, Camera camera)
     {
         _config = config;
+        _camera = camera;
 
         _container = new GameObject("HighlightManager");
 
@@ -91,7 +93,7 @@ public class HighlightManager : IKeyframeMessageConsumer
                 highlight.transform.position = center;
 
                 // Billboarding
-                highlight.transform.LookAt(Camera.main.transform);
+                highlight.transform.LookAt(_camera.transform);
 
                 // Apply radius from message using scale
                 highlight.transform.localScale = highlightsMessage[i].r * Vector3.one;

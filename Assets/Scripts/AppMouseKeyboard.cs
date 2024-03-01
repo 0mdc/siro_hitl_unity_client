@@ -46,7 +46,7 @@ public class AppMouseKeyboard : MonoBehaviour
     protected void Awake()
     {
         // Initialize IKeyframeMessageConsumers.
-        _highlightManager = new HighlightManager(_highlightManagerConfig);
+        _highlightManager = new HighlightManager(_highlightManagerConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _cameraTransformHandler = new CameraTransformHandler(_camera);
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
@@ -69,7 +69,7 @@ public class AppMouseKeyboard : MonoBehaviour
         _configLoader = new ConfigLoader(_defaultServerLocations);
         _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers);
         _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers);
-        _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_networkClient, _offlineIcon);
+        _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_networkClient, _offlineIcon, _camera);
         _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
     }
 

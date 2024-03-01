@@ -18,17 +18,20 @@ public class OnlineStatusDisplayHandler : IUpdatable
 
     bool _onlineLastFrame = false;
 
+    Camera _camera;
     Transform _iconTargetTransform;
     GameObject _offlineIcon;
     Coroutine _networkStatusIconCoroutine = null;
     CoroutineContainer _coroutines;
 
-    public OnlineStatusDisplayHandler(NetworkClient networkClient, GameObject offlineIcon)
+    public OnlineStatusDisplayHandler(NetworkClient networkClient, GameObject offlineIcon, Camera camera)
     {
         _networkClient = networkClient;
 
         _offlineIcon = offlineIcon;
         _offlineIcon.SetActive(false);
+
+        _camera = camera;
 
         _coroutines = CoroutineContainer.Create("StatusDisplayHelper");
 
@@ -42,9 +45,8 @@ public class OnlineStatusDisplayHandler : IUpdatable
 
         if (!online)
         {
-            Camera camera = Camera.main;
-            _iconTargetTransform.transform.position = camera.transform.position + camera.transform.forward * UI_PLANE_DISTANCE;
-            _iconTargetTransform.transform.LookAt(camera.transform, Vector3.up);
+            _iconTargetTransform.transform.position = _camera.transform.position + _camera.transform.forward * UI_PLANE_DISTANCE;
+            _iconTargetTransform.transform.LookAt(_camera.transform, Vector3.up);
             _iconTargetTransform.transform.Rotate(Vector3.up, 180.0f, Space.Self);
             _offlineIcon.transform.position = 
                 Vector3.Lerp(_offlineIcon.transform.position, _iconTargetTransform.position, Time.deltaTime * UI_GAZE_FOLLOWING_SPEED);
