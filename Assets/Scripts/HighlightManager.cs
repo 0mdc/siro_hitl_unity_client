@@ -18,8 +18,8 @@ public class HighlightManager : IKeyframeMessageConsumer
 
         _container = new GameObject("HighlightManager");
 
-        _highlightPool = new LineRenderer[_config.poolSize];
-        float _arcSegmentLength = TWO_PI / _config.circleResolution;
+        _highlightPool = new LineRenderer[_config.highlightPoolSize];
+        float _arcSegmentLength = TWO_PI / _config.highlightCircleResolution;
 
         // Construct a pool of highlight line renderers
         GameObject container = new GameObject("Highlights");
@@ -38,8 +38,8 @@ public class HighlightManager : IKeyframeMessageConsumer
             lineRenderer.startWidth = config.highlightWidth;
             lineRenderer.endWidth = config.highlightWidth;
             lineRenderer.materials = config.highlightMaterials;
-            lineRenderer.positionCount = config.circleResolution;
-            for (int j = 0; j < config.circleResolution; ++j)
+            lineRenderer.positionCount = config.highlightCircleResolution;
+            for (int j = 0; j < config.highlightCircleResolution; ++j)
             {
                 float xOffset = config.highlightBaseRadius * Mathf.Sin(j * _arcSegmentLength);
                 float yOffset = config.highlightBaseRadius * Mathf.Cos(j * _arcSegmentLength);
