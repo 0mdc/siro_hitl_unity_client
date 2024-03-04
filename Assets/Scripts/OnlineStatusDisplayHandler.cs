@@ -1,7 +1,7 @@
 using System.Collections;
 using UnityEngine;
 
-public class OnlineStatusDisplayHandler : IUpdatable
+public class OnlineStatusDisplayHandler
 {
     // Speed of UI gaze following.
     const float UI_GAZE_FOLLOWING_SPEED = 10.0f;
@@ -11,8 +11,6 @@ public class OnlineStatusDisplayHandler : IUpdatable
 
     // Distance between the offline icon and the camera.
     const float UI_PLANE_DISTANCE = 3.0f;
-
-    NetworkClient _networkClient;
 
     Color _ambientColor;
 
@@ -24,10 +22,8 @@ public class OnlineStatusDisplayHandler : IUpdatable
     Coroutine _networkStatusIconCoroutine = null;
     CoroutineContainer _coroutines;
 
-    public OnlineStatusDisplayHandler(NetworkClient networkClient, GameObject offlineIcon, Camera camera)
+    public OnlineStatusDisplayHandler(GameObject offlineIcon, Camera camera)
     {
-        _networkClient = networkClient;
-
         _offlineIcon = offlineIcon;
         _offlineIcon.SetActive(false);
 
@@ -39,10 +35,8 @@ public class OnlineStatusDisplayHandler : IUpdatable
         _iconTargetTransform = new GameObject("Icon target transform").transform;
     }
 
-    public void Update()
+    public void Update(bool online)
     {
-        bool online = _networkClient.IsConnected();
-
         if (!online)
         {
             _iconTargetTransform.transform.position = _camera.transform.position + _camera.transform.forward * UI_PLANE_DISTANCE;

@@ -68,7 +68,7 @@ public class AppMouseKeyboard : MonoBehaviour
         _configLoader = new ConfigLoader(_defaultServerLocations);
         _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers);
         _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers);
-        _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_networkClient, _offlineIcon, _camera);
+        _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_offlineIcon, _camera);
         _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
     }
 
@@ -76,7 +76,7 @@ public class AppMouseKeyboard : MonoBehaviour
     {
         _gfxReplayPlayer.Update();
         _networkClient.Update();
-        _onlineStatusDisplayHandler.Update();
+        _onlineStatusDisplayHandler.Update(_networkClient.IsConnected());
         _replayFileLoader.Update();
     }
 
