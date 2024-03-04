@@ -65,8 +65,8 @@ public static class ConnectionParameters
     }
 
     /// <summary>
-    /// Tries to parse a port string.
-    /// Valid if the port can be parsed into an integer between 0 and 65535 inclusively.
+    /// Try to parse a port string.
+    /// Checks if the port can be parsed into an integer between 0 and 65535 inclusively.
     /// </summary>
     /// <param name="portString">String to parse.</param>
     /// <param name="result">Output port.</param>
@@ -86,8 +86,8 @@ public static class ConnectionParameters
 
     /// <summary>
     /// Get a valid server port range from query parameters.
-    /// The 'server_port_range' parameter defines two ports defines by a '-'.
-    /// The 'server_port' defines a single port.
+    /// The 'server_port_range' parameter defines two ports, e.g. "server_port_range=2222-3333".
+    /// The 'server_port' defines a single port, e.g. "server_port=2222".
     /// If both parameters are defined, 'server_port_range' has priority over 'server_port'.
     /// </summary>
     /// <param name="queryParams">See GetConnectionParameters().</param>
@@ -96,6 +96,7 @@ public static class ConnectionParameters
     {
         if (queryParams == null) return null;
 
+        // Parse "server_port_range".
         if (queryParams.TryGetValue("server_port_range", out string serverPortRangeString))
         {
             string[] parts = serverPortRangeString.Split('-');
@@ -114,9 +115,10 @@ public static class ConnectionParameters
             }
             else
             {
-                Debug.LogError($"Invalid server_port_range: '{serverPortRangeString}'");
+                Debug.LogError($"Invalid server_port_range: '{serverPortRangeString}'. Expected format: 'server_port_range=2222-3333'.");
             }
         }
+        // Parse "server_port".
         else if (queryParams.TryGetValue("server_port", out string serverPortString))
         {
             if (TryParsePortString(serverPortString, out int port))
@@ -125,7 +127,7 @@ public static class ConnectionParameters
             }
             else
             {
-                Debug.LogError($"Invalid server_port: '{serverPortString}'");
+                Debug.LogError($"Invalid server_port: '{serverPortString}'. Expected format: 'server_port=2222'.");
             }
         }
 
