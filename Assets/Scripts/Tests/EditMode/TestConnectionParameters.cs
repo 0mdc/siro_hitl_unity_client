@@ -203,7 +203,7 @@ namespace Habitat.Tests.EditMode
             Assert.AreEqual(portRange.Value.portStart, 2222);
             Assert.AreEqual(portRange.Value.portEnd, 3333);
 
-            // Decreasing port range. We expect output to be flipped.
+            // Decreasing port range. Output is expected to be in increasing order.
             url = "test?server_port_range=3333-2222";
             parameters = ConnectionParameters.GetConnectionParameters(url);
             portRange = ConnectionParameters.GetServerPortRange(parameters);
