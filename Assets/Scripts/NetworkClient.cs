@@ -6,8 +6,25 @@ using Newtonsoft.Json;
 using UnityEngine.Assertions;
 using System.Collections;
 using System.Threading.Tasks;
-
 using System.Web;
+
+/// <summary>
+/// MonoBehaviour that renders on-screen text for NetworkClient.
+/// </summary>
+public class NetworkClientGUI : MonoBehaviour
+{
+    public string TextMessage { get; set; } = "";
+
+    public void OnGUI()
+    {
+        GUILayout.BeginArea(new Rect(16, 16, 200, 200));
+        GUILayout.BeginVertical();
+        GUI.color = Color.white;
+        GUILayout.Label(TextMessage);
+        GUILayout.EndVertical();
+        GUILayout.EndArea();
+    }
+}
 
 public class NetworkClient : IUpdatable
 {
@@ -35,15 +52,18 @@ public class NetworkClient : IUpdatable
     private int currentServerIndex = 0;
     private int messagesReceivedCount = 0;
     private int frameCount = 0;
+    private float _delayReconnect = 0.0f;
+    private string _disconnectReason = "";
+    int _recentConnectionMessageCount = 0;
 
     private GfxReplayPlayer _player;
     private ConfigLoader _configLoader;
 
     Dictionary<string, string> _connectionParams;
-
     ClientState _clientState = new ClientState();
     IClientStateProducer[] _clientStateProducers;
     CoroutineContainer _coroutines;
+    NetworkClientGUI _textRenderer;
 
     // Used to handle data that is only meant to be sent during the first transmission.
     private bool _firstTransmission = true;
@@ -63,6 +83,7 @@ public class NetworkClient : IUpdatable
         _configLoader = configLoader;
         _clientStateProducers = clientStateProducers;
         _coroutines = CoroutineContainer.Create("NetworkClient");
+        _textRenderer = new GameObject("NetworkClientGUI").AddComponent<NetworkClientGUI>();
         
         // Read URL query parameters
         _connectionParams = ConnectionParameters.GetConnectionParameters(Application.absoluteURL);
@@ -122,6 +143,21 @@ public class NetworkClient : IUpdatable
         {
             if (mainWebSocket == null)
             {
+                if (_delayReconnect > 0.0f)
+                {
+                    Debug.Log($"Delaying reconnect for {_delayReconnect}s");
+                    int numWaits = (int)_delayReconnect;
+                    for (int i = 0; i < numWaits; i++)
+                    {
+                        int remainingTime = numWaits - i;
+                        SetDisconnectStatus($"{_disconnectReason}\nRetrying in {remainingTime}s...");
+                        yield return new WaitForSeconds(1.0f);
+                    }
+                    SetDisconnectStatus("");
+                    _delayReconnect = 0.0f;
+                    _disconnectReason = "";
+                }
+
                 currentServerIndex++;
                 if (currentServerIndex >= _serverURLs.Count)
                 {
@@ -142,6 +178,7 @@ public class NetworkClient : IUpdatable
 
                 if (mainWebSocket == null && websocket.State == WebSocketState.Connecting)
                 {
+                    SetDisconnectStatus("Trying to reach servers...");
                     // Wait another 4s
                     yield return new WaitForSeconds(4);
                 }
@@ -155,6 +192,12 @@ public class NetworkClient : IUpdatable
                     // See OnOpen callback in ConnectWebSocket where we check
                     // this flag and potentially discard the connection.
                     doAbort.SetFlag();
+
+                    if (_disconnectReason == "")
+                    {
+                        _delayReconnect = 5.0f;
+                        _disconnectReason = "Unable to reach servers!";
+                    }
                 }
             }
             else
@@ -178,12 +221,13 @@ public class NetworkClient : IUpdatable
             }
 
             Debug.Log("Connected to: " + url);
+            _recentConnectionMessageCount = 0;
 
-            websocket.SendText("client ready!");
+            // send connection params
+            _connectionParams["isClientReady"] = "1";  // sloppy: set to string "1" instead of True
+            string jsonStr = JsonConvert.SerializeObject(_connectionParams, Formatting.None, _jsonSettings);
+            websocket.SendText(jsonStr);
             Debug.Log("Sent message: client ready!");
-
-            // delete all old instances on (re)connect
-            _player.DeleteAllInstancesFromKeyframes();
 
             mainWebSocket = websocket;
         };
@@ -199,14 +243,35 @@ public class NetworkClient : IUpdatable
             {
                 Debug.Log("Main connection closed!");
                 mainWebSocket = null;
+                SetDisconnectStatus("");
+                const int messageThreshold = 10;
+                // delay reconnect after close, to avoid spamming servers and to give other clients a chance to connect
+                if (_recentConnectionMessageCount >= messageThreshold)
+                {
+                    // This was a long-lasting connection. Disconnected most likely due to client idle.
+                    _disconnectReason = "Disconnected!";
+                    _delayReconnect = 15.0f;
+                }
+                else
+                {
+                    // This was a short connection. Disconnected most likely due to server already having a client.
+                    _disconnectReason = "All servers are busy!";
+                    _delayReconnect = 10.0f;
+                }
             }
         };
 
         websocket.OnMessage += (bytes) =>
         {
+            if (_recentConnectionMessageCount == 0) {
+                // delete all old instances on reconnect
+                _player.DeleteAllInstancesFromKeyframes();
+            }
+
             string message = System.Text.Encoding.UTF8.GetString(bytes);
             ProcessReceivedKeyframes(message);
             messagesReceivedCount++;
+            _recentConnectionMessageCount++;
         };
 
         await websocket.Connect();
@@ -268,6 +333,11 @@ public class NetworkClient : IUpdatable
         {
             updater.UpdateClientState(ref _clientState);
         }
+    }
+
+    void SetDisconnectStatus(string status)
+    {
+        _textRenderer.TextMessage = status;
     }
 
     IEnumerator SendClientState()
