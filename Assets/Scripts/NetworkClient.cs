@@ -229,13 +229,15 @@ public class NetworkClient : IUpdatable
 
             if (isConnected())
             {
-                // Log the count of received messages
-                float messageRate = (float)messagesReceivedCount / duration;
-
-                Debug.Log($"Message rate: {messageRate.ToString("F1")}, FPS: {fps.ToString("F1")}");
-
-                _player.SetKeyframeRate(messageRate);
-            } else
+                if (messagesReceivedCount > 0 && duration > 0)
+                {
+                    // Log the count of received messages
+                    float messageRate = (float)messagesReceivedCount / duration;
+                    Debug.Log($"Message rate: {messageRate.ToString("F1")}, FPS: {fps.ToString("F1")}");
+                    _player.SetKeyframeRate(messageRate);
+                }
+            }
+            else
             {
                 Debug.Log($"disconnected, FPS: {fps.ToString("F1")}");
             }
