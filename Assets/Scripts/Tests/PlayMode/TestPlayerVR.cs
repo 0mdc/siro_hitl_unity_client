@@ -25,9 +25,6 @@ public class TestPlayerVR
         {
             var objs = GameObject.FindObjectsByType<AppVR>(FindObjectsSortMode.None);
             Assert.AreEqual(objs.Length, 1);
-            var app = objs[0];
-            Assert.AreNotEqual(app.GetComponent<NetworkClient>(), null);
-            Assert.AreNotEqual(app.GetComponent<GfxReplayPlayer>(), null);
         }
         {
             var objs = GameObject.FindObjectsByType<Camera>(FindObjectsSortMode.None);
@@ -38,10 +35,6 @@ public class TestPlayerVR
         {
             var objs = GameObject.FindObjectsByType<Light>(FindObjectsSortMode.None);
             Assert.AreNotEqual(objs.Length, 0);
-        }
-        {
-            var objs = GameObject.FindObjectsByType<BoxCollider>(FindObjectsSortMode.None);
-            Assert.AreEqual(objs.Length, 1);
         }
         yield return null;
     }

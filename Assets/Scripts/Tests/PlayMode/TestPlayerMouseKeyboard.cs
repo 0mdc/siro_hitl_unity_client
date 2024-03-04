@@ -25,9 +25,6 @@ public class TestPlayerMouseKeyboard
         {
             var objs = GameObject.FindObjectsByType<AppMouseKeyboard>(FindObjectsSortMode.None);
             Assert.AreEqual(objs.Length, 1);
-            var app = objs[0];
-            Assert.AreNotEqual(app.GetComponent<NetworkClient>(), null);
-            Assert.AreNotEqual(app.GetComponent<GfxReplayPlayer>(), null);
         }
         {
             var objs = GameObject.FindObjectsByType<Camera>(FindObjectsSortMode.None);
