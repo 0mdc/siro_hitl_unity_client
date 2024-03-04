@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
 
-public class GfxReplayPlayer : MonoBehaviour
+public class GfxReplayPlayer : IUpdatable
 {
     public struct MovementData
     {
@@ -20,20 +20,16 @@ public class GfxReplayPlayer : MonoBehaviour
     private Dictionary<int, GameObject> _instanceDictionary = new Dictionary<int, GameObject>();
     private Dictionary<string, Load> _loadDictionary = new Dictionary<string, Load>();
     IKeyframeMessageConsumer[] _messageConsumers;
-
     private Dictionary<int, MovementData> _movementData = new Dictionary<int, MovementData>();
     private float _keyframeInterval = 0.1f;  // assume 10Hz, but see also SetKeyframeRate
     const bool _useKeyframeInterpolation = true;
+    Dictionary<int, GfxReplaySkinnedMesh> _skinnedMeshes = new Dictionary<int, GfxReplaySkinnedMesh>();
+    CoroutineContainer _coroutines;
 
-    void Awake()
+    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers)
     {
-        // Search the codebase for available IKeyframeMessageConsumers.
-        // They should be added to this GameObject via the Editor (or programmatically, before adding this Component).
-        _messageConsumers = GetComponents<IKeyframeMessageConsumer>();
-        if (_messageConsumers.Length == 0)
-        {
-            Debug.LogWarning("No IKeyframeMessageConsumer could be found. The client will have limited functionality.");
-        }
+        _messageConsumers = messageConsumers;
+        _coroutines = CoroutineContainer.Create("GfxReplayPlayer");
     }
 
     public void SetKeyframeRate(float rate)
@@ -107,7 +103,7 @@ public class GfxReplayPlayer : MonoBehaviour
                     GameObject instance = _instanceDictionary[update.instanceKey];
 
                     Vector3 translation = CoordinateSystem.ToUnityVector(update.state.absTransform.translation);
-                    Quaternion rotation = CoordinateSystem.ToUnityQuaternion(update.state.absTransform.rotation);
+                    Quaternion rotation = CoordinateSystem.ToUnityQuaternion3DModel(update.state.absTransform.rotation);
 
                     instance.transform.position = translation;
                     instance.transform.rotation = rotation;
@@ -127,7 +123,7 @@ public class GfxReplayPlayer : MonoBehaviour
                     GameObject instance = _instanceDictionary[update.instanceKey];
 
                     Vector3 newTranslation = CoordinateSystem.ToUnityVector(update.state.absTransform.translation);
-                    Quaternion newRotation = CoordinateSystem.ToUnityQuaternion(update.state.absTransform.rotation);
+                    Quaternion newRotation = CoordinateSystem.ToUnityQuaternion3DModel(update.state.absTransform.rotation);
 
                     // Check if the instance is at the origin
                     if (instance.transform.position == Vector3.zero)
@@ -174,12 +170,13 @@ public class GfxReplayPlayer : MonoBehaviour
         {
             ProcessStateUpdatesForInterpolation(keyframe);
         }
+        // Suppress 'Unreachable Code' warning.
+        #pragma warning disable 0162 
         else
         {
-            #pragma warning disable CS0162  // Suppress 'Unreachable Code' warning.
             ProcessStateUpdatesImmediate(keyframe);
-            #pragma warning restore CS0162
         }
+        #pragma warning restore 0162
 
     }
 
@@ -221,8 +218,14 @@ public class GfxReplayPlayer : MonoBehaviour
         }
 
     }
-    private void Update()
+
+    public void Update()
     {
+        foreach (var messageConsumer in _messageConsumers)
+        {
+            messageConsumer.Update();
+        }
+
         if (_useKeyframeInterpolation)
         {
             UpdateForInterpolatedStateUpdates();
@@ -270,11 +273,19 @@ public class GfxReplayPlayer : MonoBehaviour
                     continue;
                 }
 
-                GameObject instance = Instantiate(prefab);
+                GameObject instance = GameObject.Instantiate(prefab);
 
                 if (creationItem.creation.scale != null)
                 {
                     instance.transform.localScale = new Vector3(creationItem.creation.scale[0], creationItem.creation.scale[1], creationItem.creation.scale[2]);
+                }
+
+                int rigId = creationItem.creation.rigId;
+                if (rigId != Constants.ID_UNDEFINED)
+                {
+                    var skinnedMesh = instance.AddComponent<GfxReplaySkinnedMesh>();
+                    skinnedMesh.rigId = rigId;
+                    _skinnedMeshes[rigId] = skinnedMesh;
                 }
 
                 instance = HandleFrame(instance, load.frame);
@@ -284,6 +295,30 @@ public class GfxReplayPlayer : MonoBehaviour
             Debug.Log($"Processed {keyframe.creations.Length} creations!");
         }
 
+        if (keyframe.rigCreations != null)
+        {
+            foreach (var rigCreation in keyframe.rigCreations)
+            {
+                int rigId = rigCreation.id;
+                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplaySkinnedMesh skinnedMesh))
+                {
+                    skinnedMesh.configureRigInstance(rigCreation.boneNames);
+                }
+            }
+        }
+
+        if (keyframe.rigUpdates != null)
+        {
+            foreach (var rigUpdate in keyframe.rigUpdates)
+            {
+                int rigId = rigUpdate.id;
+                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplaySkinnedMesh skinnedMesh))
+                {
+                    skinnedMesh.setPose(rigUpdate.pose);
+                }
+            }
+        }
+
         ProcessStateUpdates(keyframe);
 
         // Handle Deletions
@@ -291,13 +326,18 @@ public class GfxReplayPlayer : MonoBehaviour
         {
             foreach (var key in keyframe.deletions)
             {
-                if (_instanceDictionary.ContainsKey(key))
+                if (_instanceDictionary.TryGetValue(key, out GameObject obj))
                 {
-                    Destroy(_instanceDictionary[key]);
-                    _instanceDictionary.Remove(key);
+                    GfxReplaySkinnedMesh skinnedMesh = obj.GetComponent<GfxReplaySkinnedMesh>();
+                    if (skinnedMesh != null)
+                    {
+                        _skinnedMeshes.Remove(skinnedMesh.rigId);
+                    }
                 }
+                
+                GameObject.Destroy(_instanceDictionary[key]);
             }
-            StartCoroutine(ReleaseUnusedMemory(
+            _coroutines.StartCoroutine(ReleaseUnusedMemory(
                 // Wait for memory clean-up to be finished before executing KeyframePostUpdate()
                 () => {KeyframePostUpdate(keyframe);})
             );
@@ -324,9 +364,9 @@ public class GfxReplayPlayer : MonoBehaviour
     {
         foreach (var kvp in _instanceDictionary)
         {
-            Destroy(kvp.Value);
+            GameObject.Destroy(kvp.Value);
         }
-        StartCoroutine(ReleaseUnusedMemory());
+        _coroutines.StartCoroutine(ReleaseUnusedMemory());
         Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
         _instanceDictionary.Clear();
     }

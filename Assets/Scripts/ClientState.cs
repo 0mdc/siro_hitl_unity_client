@@ -8,6 +8,7 @@ public class ClientState
 {
     public AvatarData avatar;
     public ButtonInputData input;
+    public MouseInputData mouse;
     public Dictionary<string, string> connection_params_dict;
 }
 
@@ -33,7 +34,7 @@ public class PoseData
     public void FromGameObject(GameObject gameObject)
     {
         position = CoordinateSystem.ToHabitatVector(gameObject.transform.position).ToArray();
-        rotation = CoordinateSystem.ToHabitatQuaternion(gameObject.transform.rotation).ToArray();
+        rotation = CoordinateSystem.ToHabitatQuaternion3DModel(gameObject.transform.rotation).ToArray();
     }
 }
 
@@ -44,4 +45,13 @@ public class ButtonInputData
     public List<int> buttonHeld = new List<int>();
     public List<int> buttonUp = new List<int>();
     public List<int> buttonDown = new List<int>();
+}
+
+[Serializable]
+// Mouse input.
+public class MouseInputData
+{
+    public ButtonInputData buttons = new ButtonInputData();
+
+    public float[] scrollDelta = new float[2];
 }
