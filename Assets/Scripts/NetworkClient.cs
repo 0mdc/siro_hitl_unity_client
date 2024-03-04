@@ -55,8 +55,6 @@ public class NetworkClient : IUpdatable
     private float _delayReconnect = 0.0f;
     private string _disconnectReason = "";
     int _recentConnectionMessageCount = 0;
-    int? _serverPortRangeMin = null;
-    int? _serverPortRangeMax = null;
 
     private GfxReplayPlayer _player;
     private ConfigLoader _configLoader;
@@ -91,44 +89,26 @@ public class NetworkClient : IUpdatable
         
         // Read URL query parameters
         _connectionParams = ConnectionParameters.GetConnectionParameters(Application.absoluteURL);
-        var _serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
-        var _serverPortOverride = ConnectionParameters.GetServerPort(_connectionParams);
+        var serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
+        var serverPortRange = ConnectionParameters.GetServerPortRange(_connectionParams);
 
-
-
-        // Override server port from query arguments.
-        if (_connectionParams.TryGetValue("server_port_range", out string serverPortRange))
+        if (serverPortRange == null)
         {
-            string[] parts = serverPortRange.Split('-');
-            if (parts.Length == 2 && int.TryParse(parts[0], out int startPort) && int.TryParse(parts[1], out int endPort))
-            {
-                _serverPortRangeMin = startPort;
-                _serverPortRangeMax = endPort;
-            }
-            else
-            {
-                Debug.LogError($"Invalid server_port_range: '{serverPortRange}'");
-            }
-        }
-
-        if (_serverPortRangeMin == null)
-        {
-            _serverPortRangeMin = _serverPortOverride != null ? _serverPortOverride.Value : defaultServerPort;
-            _serverPortRangeMax = _serverPortOverride != null ? _serverPortOverride.Value : defaultServerPort;
+            serverPortRange = (defaultServerPort, defaultServerPort);
         }
 
         bool isHttps = false;
         string wsProtocol = isHttps ? "wss" : "ws";
         // Set up server hostnames and port.
-        string[] serverLocations = _serverHostnameOverride != null ? 
-                                        new[]{_serverHostnameOverride} : 
+        string[] serverLocations = serverHostnameOverride != null ? 
+                                        new[]{serverHostnameOverride} : 
                                         _configLoader.AppConfig.serverLocations;
         Assert.IsTrue(serverLocations.Length > 0);
         foreach (string location in serverLocations)
         {
             if (!location.Contains(":"))
             {
-                for (int port = (int)_serverPortRangeMin; port <= _serverPortRangeMax; port++)
+                for (int port = serverPortRange.Value.startPort; port <= serverPortRange.Value.endPort; port++)
                 {
                     string adjustedLocation = location + ":" + port;
                     _serverURLs.Add($"{wsProtocol}://{adjustedLocation}");
