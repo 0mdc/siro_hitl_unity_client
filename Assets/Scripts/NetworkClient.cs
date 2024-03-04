@@ -55,6 +55,8 @@ public class NetworkClient : IUpdatable
     private float _delayReconnect = 0.0f;
     private string _disconnectReason = "";
     int _recentConnectionMessageCount = 0;
+    int? _serverPortRangeMin = null;
+    int? _serverPortRangeMax = null;
 
     private GfxReplayPlayer _player;
     private ConfigLoader _configLoader;
@@ -64,6 +66,7 @@ public class NetworkClient : IUpdatable
     IClientStateProducer[] _clientStateProducers;
     CoroutineContainer _coroutines;
     NetworkClientGUI _textRenderer;
+    ServerKeyframeIdHandler _serverKeyframeIdHandler;
 
     // Used to handle data that is only meant to be sent during the first transmission.
     private bool _firstTransmission = true;
@@ -77,11 +80,12 @@ public class NetworkClient : IUpdatable
         MissingMemberHandling = MissingMemberHandling.Ignore
     };
 
-    public NetworkClient(GfxReplayPlayer player, ConfigLoader configLoader, IClientStateProducer[] clientStateProducers)
+    public NetworkClient(GfxReplayPlayer player, ConfigLoader configLoader, IClientStateProducer[] clientStateProducers, ServerKeyframeIdHandler serverKeyframeIdHandler)
     {
         _player = player;
         _configLoader = configLoader;
         _clientStateProducers = clientStateProducers;
+        _serverKeyframeIdHandler = serverKeyframeIdHandler;
         _coroutines = CoroutineContainer.Create("NetworkClient");
         _textRenderer = new GameObject("NetworkClientGUI").AddComponent<NetworkClientGUI>();
         
@@ -90,30 +94,52 @@ public class NetworkClient : IUpdatable
         var _serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
         var _serverPortOverride = ConnectionParameters.GetServerPort(_connectionParams);
 
+
+
+        // Override server port from query arguments.
+        if (_connectionParams.TryGetValue("server_port_range", out string serverPortRange))
+        {
+            string[] parts = serverPortRange.Split('-');
+            if (parts.Length == 2 && int.TryParse(parts[0], out int startPort) && int.TryParse(parts[1], out int endPort))
+            {
+                _serverPortRangeMin = startPort;
+                _serverPortRangeMax = endPort;
+            }
+            else
+            {
+                Debug.LogError($"Invalid server_port_range: '{serverPortRange}'");
+            }
+        }
+
+        if (_serverPortRangeMin == null)
+        {
+            _serverPortRangeMin = _serverPortOverride != null ? _serverPortOverride.Value : defaultServerPort;
+            _serverPortRangeMax = _serverPortOverride != null ? _serverPortOverride.Value : defaultServerPort;
+        }
+
+        bool isHttps = false;
+        string wsProtocol = isHttps ? "wss" : "ws";
         // Set up server hostnames and port.
         string[] serverLocations = _serverHostnameOverride != null ? 
                                         new[]{_serverHostnameOverride} : 
                                         _configLoader.AppConfig.serverLocations;
-        int serverPort = _serverPortOverride != null ?
-                            _serverPortOverride.Value :
-                            defaultServerPort;
         Assert.IsTrue(serverLocations.Length > 0);
         foreach (string location in serverLocations)
         {
-            string adjustedLocation;
             if (!location.Contains(":"))
             {
-                adjustedLocation = $"{location}:{serverPort}";
+                for (int port = (int)_serverPortRangeMin; port <= _serverPortRangeMax; port++)
+                {
+                    string adjustedLocation = location + ":" + port;
+                    _serverURLs.Add($"{wsProtocol}://{adjustedLocation}");
+                }
             }
             else
             {
-                adjustedLocation = location;
+                _serverURLs.Add($"{wsProtocol}://{location}");
             }
-
-            bool isHttps = false;
-            string wsProtocol = isHttps ? "wss" : "ws";
-            _serverURLs.Add($"{wsProtocol}://{adjustedLocation}");
         }
+        currentServerIndex = UnityEngine.Random.Range(0, _serverURLs.Count);
 
         // Start networking.
         _coroutines.StartCoroutine(TryConnectToServers());
@@ -150,7 +176,8 @@ public class NetworkClient : IUpdatable
                     for (int i = 0; i < numWaits; i++)
                     {
                         int remainingTime = numWaits - i;
-                        SetDisconnectStatus($"{_disconnectReason}\nRetrying in {remainingTime}s...");
+                        string retryDesc = _serverURLs.Count == 1 ? "Retrying" : "Trying another server";
+                        SetDisconnectStatus($"{_disconnectReason}\n{retryDesc} in {remainingTime}s...");
                         yield return new WaitForSeconds(1.0f);
                     }
                     SetDisconnectStatus("");
@@ -173,12 +200,12 @@ public class NetworkClient : IUpdatable
                 // still on the main Unity thread).
                 var connectTask = ConnectWebSocket(websocket, url, doAbort);
 
-                // Wait for 4s, then check the result
-                yield return new WaitForSeconds(4);
+                // Wait for 2s, then check the result
+                yield return new WaitForSeconds(2.0f);
 
                 if (mainWebSocket == null && websocket.State == WebSocketState.Connecting)
                 {
-                    SetDisconnectStatus("Trying to reach servers...");
+                    SetDisconnectStatus("Trying to reach server...");
                     // Wait another 4s
                     yield return new WaitForSeconds(4);
                 }
@@ -195,8 +222,8 @@ public class NetworkClient : IUpdatable
 
                     if (_disconnectReason == "")
                     {
-                        _delayReconnect = 5.0f;
-                        _disconnectReason = "Unable to reach servers!";
+                        _delayReconnect = _serverURLs.Count == 1 ? 5.0f : 2.0f;
+                        _disconnectReason = "Unable to reach server!";
                     }
                 }
             }
@@ -255,8 +282,8 @@ public class NetworkClient : IUpdatable
                 else
                 {
                     // This was a short connection. Disconnected most likely due to server already having a client.
-                    _disconnectReason = "All servers are busy!";
-                    _delayReconnect = 10.0f;
+                    _disconnectReason = "Server is busy!";
+                    _delayReconnect = _serverURLs.Count == 1 ? 10.0f : 3.0f;
                 }
             }
         };
@@ -332,6 +359,11 @@ public class NetworkClient : IUpdatable
         foreach (var updater in _clientStateProducers)
         {
             updater.UpdateClientState(ref _clientState);
+        }
+        
+        if (_serverKeyframeIdHandler.recentServerKeyframeId != null)
+        {
+            _clientState.recentServerKeyframeId = _serverKeyframeIdHandler.recentServerKeyframeId;
         }
     }
 
