@@ -5,6 +5,9 @@ using System.Collections.Generic;
 using System.Web;
 using UnityEngine;
 
+/// <summary>
+/// Utility functions to handle query string parameters.
+/// </summary>
 public static class ConnectionParameters
 {
     /// <summary>
