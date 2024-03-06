@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 public class HighlightManager : IKeyframeMessageConsumer
 {
@@ -68,8 +69,9 @@ public class HighlightManager : IKeyframeMessageConsumer
                 lineRenderer.enabled = true;
 
                 Color color = _config.highlightDefaultColor;
-                if (msg.c != null && msg.c.Length == 4)
+                if (msg.c != null && msg.c.Length > 0)                
                 {
+                    Assert.AreEqual(msg.c.Length, 4, $"Invalid highlight color format. Expected 4 ints, got {msg.c.Length}.");
                     color.r = (float)msg.c[0] / 255.0f;
                     color.g = (float)msg.c[1] / 255.0f;
                     color.b = (float)msg.c[2] / 255.0f;
