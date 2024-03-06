@@ -7,5 +7,10 @@ public class ServerKeyframeIdHandler : IKeyframeMessageConsumer
         recentServerKeyframeId = message.serverKeyframeId;
     }
 
+    public void Reset()
+    {
+        recentServerKeyframeId = null;
+    }
+
     public void Update() {}
 }

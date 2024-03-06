@@ -232,8 +232,11 @@ public class NetworkClient : IUpdatable
             Debug.Log("Connected to: " + url);
             _recentConnectionMessageCount = 0;
 
+            // Reset the server keyframe ID to avoid leaking ID from a previous session
+            _serverKeyframeIdHandler.Reset();
+
             // send connection params
-            _connectionParams["isClientReady"] = "1";  // sloppy: set to string "1" instead of True
+            _connectionParams["isClientReady"] = "1";
             string jsonStr = JsonConvert.SerializeObject(_connectionParams, Formatting.None, _jsonSettings);
             websocket.SendText(jsonStr);
             Debug.Log("Sent message: client ready!");
