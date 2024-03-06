@@ -202,6 +202,8 @@ public class NetworkClient : IUpdatable
 
                     if (_disconnectReason == "")
                     {
+                        // If there's only one server URL, let's wait 5s (avoid hammering more often than that).
+                        // If there's multiple server URLs, let's try them more quickly (wait only 2s).
                         _delayReconnect = _serverURLs.Count == 1 ? 5.0f : 2.0f;
                         _disconnectReason = "Unable to reach server!";
                     }
@@ -271,7 +273,7 @@ public class NetworkClient : IUpdatable
         websocket.OnMessage += (bytes) =>
         {
             if (_recentConnectionMessageCount == 0) {
-                // delete all old instances on reconnect
+                // Delete all old instances upon receiving the first keyframe.
                 _player.DeleteAllInstancesFromKeyframes();
             }
 
