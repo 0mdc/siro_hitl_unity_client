@@ -43,7 +43,7 @@ public static class CoordinateSystem
             rotation[1],
             rotation[2],
             -rotation[3],
-            -rotation[0]
+            -rotation[0]  // Change of chirality.
         );
     }
 
@@ -67,7 +67,7 @@ public static class CoordinateSystem
     {
         return new List<float>
         {
-            -rotation.w,
+            -rotation.w,  // Change of chirality.
             rotation.x,
             rotation.y,
             -rotation.z
