@@ -240,7 +240,7 @@ public class GfxReplayPlayer : IUpdatable
                 }
 
                 string resourcePath = getResourcePath(source);
-                var instance = GfxReplayInstance.CreateAndLoad(creationItem.instanceKey.ToString(), resourcePath, load.frame);
+                var instance = GfxReplayInstance.LoadAndInstantiate(creationItem.instanceKey.ToString(), resourcePath, load.frame);
 
                 if (creationItem.creation.scale != null)
                 {
@@ -300,7 +300,7 @@ public class GfxReplayPlayer : IUpdatable
                     }
                 }
                 
-                GameObject.Destroy(_instanceDictionary[key].gameObject);
+                _instanceDictionary[key].Destroy();
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory(
                 // Wait for memory clean-up to be finished before executing KeyframePostUpdate()
@@ -329,7 +329,7 @@ public class GfxReplayPlayer : IUpdatable
     {
         foreach (var kvp in _instanceDictionary)
         {
-            GameObject.Destroy(kvp.Value.gameObject);
+            kvp.Value.Destroy();
         }
         _coroutines.StartCoroutine(ReleaseUnusedMemory());
         Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
