@@ -1,7 +1,7 @@
 using TMPro;
 using UnityEngine;
 
-public class TextRenderer : IKeyframeMessageConsumer
+public class XRTextRenderer : IKeyframeMessageConsumer
 {
     const float UI_GAZE_FOLLOWING_SPEED = 10.0f;
 
@@ -11,13 +11,13 @@ public class TextRenderer : IKeyframeMessageConsumer
     Transform _targetTransform;
     Camera _camera;
 
-    public TextRenderer(float uiPlaneDistance, GameObject textPanelRoot, TextMeshPro textComponent, Camera camera)
+    public XRTextRenderer(float uiPlaneDistance, GameObject textPanelRoot, TextMeshPro textComponent, Camera camera)
     {
         _uiPlaneDistance = uiPlaneDistance;
         _textPanelRoot = textPanelRoot;
         _textComponent = textComponent;
         _camera = camera;
-        _targetTransform = new GameObject("TextRenderer Target transform").transform;
+        _targetTransform = new GameObject("XRTextRenderer Target transform").transform;
     }
 
     public void Update()

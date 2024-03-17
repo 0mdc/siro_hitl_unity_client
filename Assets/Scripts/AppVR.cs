@@ -41,7 +41,7 @@ public class AppVR : MonoBehaviour
     [Tooltip("Root of the text panel.")]
     [SerializeField] private GameObject _textPanelRoot;
 
-    [Tooltip("Text to render using TextRenderer.")]
+    [Tooltip("Text to render using XRTextRenderer.")]
     [SerializeField] private TextMeshPro _textComponent;
 
     [Tooltip("Text UI plane distance from camera.")]
@@ -53,7 +53,7 @@ public class AppVR : MonoBehaviour
     AvatarPositionHandler _avatarPositionHandler;
     HighlightManager _highlightManager;
     LoadingEffectHandler _loadingEffectHandler;
-    TextRenderer _textRenderer;
+    XRTextRenderer _textRenderer;
     NavmeshHelper _navmeshHelper;
 
     // IClientStateProducers
@@ -80,7 +80,7 @@ public class AppVR : MonoBehaviour
         _avatarPositionHandler = new AvatarPositionHandler(_camera.gameObject, _xrOrigin);
         _highlightManager = new HighlightManager(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
-        _textRenderer = new TextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent, _camera);
+        _textRenderer = new XRTextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent, _camera);
         _navmeshHelper = new NavmeshHelper();
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {
