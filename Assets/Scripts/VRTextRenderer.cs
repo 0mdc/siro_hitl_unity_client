@@ -1,3 +1,4 @@
+using System.Text;
 using TMPro;
 using UnityEngine;
 
@@ -48,6 +49,14 @@ public class XRTextRenderer : IKeyframeMessageConsumer
 
     public void ProcessMessage(Message message)
     {
-        SetText(message.textMessage);
+        if (message.texts != null)
+        {
+            StringBuilder textMessage = new StringBuilder();
+            foreach (var text in message.texts)
+            {
+                textMessage.AppendLine(text.text);
+            }
+            SetText(textMessage.ToString());
+        }
     }
 }

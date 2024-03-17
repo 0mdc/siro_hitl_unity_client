@@ -31,6 +31,7 @@ public class AppMouseKeyboard : MonoBehaviour
     HighlightManager _highlightManager;
     LoadingEffectHandler _loadingEffectHandler;
     CameraTransformHandler _cameraTransformHandler;
+    TextRenderer _textRenderer;
 
     // IClientStateProducers
     InputTrackerMouse _inputTrackerMouse;
@@ -50,12 +51,14 @@ public class AppMouseKeyboard : MonoBehaviour
         _highlightManager = new HighlightManager(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _cameraTransformHandler = new CameraTransformHandler(_camera);
+        _textRenderer = new TextRenderer();
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {
             _serverKeyframeIdHandler,
             _highlightManager,
             _loadingEffectHandler,
             _cameraTransformHandler,
+            _textRenderer,
         };
 
         // Initialize IClientStateProducers.

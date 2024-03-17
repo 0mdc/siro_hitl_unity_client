@@ -106,17 +106,12 @@ public class RigUpdate
 public class Message
 {
     public Highlight[] highlights;
-
     public List<float> teleportAvatarBasePosition;
-
     public bool sceneChanged;
     // nonindexed triangle list, serialized as a flat list of floats
     public List<float> navmeshVertices;
-
-    public string textMessage;
-
+    public List<TextMessage> texts;
     public AbsTransform camera;
-
     public int serverKeyframeId;
 }
 
@@ -128,4 +123,11 @@ public class Highlight
     public float r; // Radius
     public int b = 0; // 0 = Face-up, 1 = Billboard (face camera)
     public int[] c; // Color, RGBA, 0-255
+}
+
+[Serializable]
+public class TextMessage
+{
+    public string text;
+    public List<float> position;
 }
