@@ -1,3 +1,6 @@
+using UnityEngine;
+using System.IO;
+
 /// <summary>
 /// Loads a configuration from file.
 /// Config defaults are used directly when running in the Editor. On device, they are used to populate config.txt at Android/data/com.meta.siro_hitl_vr_client/files/.
