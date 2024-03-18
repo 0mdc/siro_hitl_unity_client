@@ -1,53 +1,49 @@
+using System;
 using TMPro;
 using UnityEngine;
 
 public class TextRenderer : IKeyframeMessageConsumer
 {
-    const float UI_GAZE_FOLLOWING_SPEED = 10.0f;
-
-    float _uiPlaneDistance = 20.0f;
-    GameObject _textPanelRoot;
-    TextMeshPro _textComponent;
-    Transform _targetTransform;
-    Camera _camera;
-
-    public TextRenderer(float uiPlaneDistance, GameObject textPanelRoot, TextMeshPro textComponent, Camera camera)
+    /// <summary>
+    /// Simple MonoBehaviour that renders on-screen text for TextRenderer.
+    /// </summary>
+    // TODO: Handle formatting.
+    public class TextRendererGUI : MonoBehaviour
     {
-        _uiPlaneDistance = uiPlaneDistance;
-        _textPanelRoot = textPanelRoot;
-        _textComponent = textComponent;
-        _camera = camera;
-        _targetTransform = new GameObject("TextRenderer Target transform").transform;
-    }
+        public TextMessage[] texts = new TextMessage[0];
 
-    public void Update()
-    {
-        _targetTransform.transform.position = _camera.transform.position + _camera.transform.forward * _uiPlaneDistance;
-        _targetTransform.transform.LookAt(_camera.transform, Vector3.up);
-        _targetTransform.transform.Rotate(Vector3.up, 180.0f, Space.Self);
+        public void OnGUI()
+        {
+            if (texts == null)
+            {
+                return;
+            }
 
-        if (_textPanelRoot.activeSelf)
-        {
-            _textPanelRoot.transform.position = 
-                Vector3.Lerp(_textPanelRoot.transform.position, _targetTransform.position, Time.deltaTime * UI_GAZE_FOLLOWING_SPEED);
-            _textPanelRoot.transform.rotation =
-                Quaternion.Slerp(_textPanelRoot.transform.rotation, _targetTransform.rotation, Time.deltaTime * UI_GAZE_FOLLOWING_SPEED);
-        }
-        else 
-        {
-            _textPanelRoot.transform.position = _targetTransform.position;
-            _textPanelRoot.transform.rotation = _targetTransform.rotation;
+            GUILayout.BeginArea(new Rect(16, 16, 500, 500));
+            GUILayout.BeginVertical();
+            GUI.color = Color.white;
+            foreach (var text in texts)
+            {
+                GUILayout.Label(text.text);
+            }
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
         }
     }
 
-    public void SetText(string text)
+    TextRendererGUI _textRenderer;
+
+    public TextRenderer()
     {
-        _textPanelRoot.SetActive(string.IsNullOrEmpty(text));
-        _textComponent.text = text;
+        _textRenderer = new GameObject("TextRendererGUI").AddComponent<TextRendererGUI>();
     }
+
+    public void Update() {}
 
     public void ProcessMessage(Message message)
     {
-        SetText(message.textMessage);
+        _textRenderer.texts = message.texts?.ToArray();
     }
+
+    public void PostProcessMessage(Message message) {}
 }
