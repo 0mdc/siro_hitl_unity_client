@@ -40,16 +40,15 @@ public class GfxReplaySkinnedMesh
         _skinnedMeshRenderer.updateWhenOffscreen = true;
 
         // If we already received bone names from gfx-replay, start mapping.
-        if (_boneNames != null)
-        {
-            mapGfxReplayBonesToSkinnedMesh(_boneNames);
-        }
+        _initialized = mapGfxReplayBonesToSkinnedMesh(_boneNames);
     }
 
     public void ProcessRigCreation(RigCreation rigCreation)
     {
         _boneNames = rigCreation.boneNames;
-        mapGfxReplayBonesToSkinnedMesh(_boneNames);
+
+        // If we already initialized the skinned mesh, start mapping.
+        _initialized = mapGfxReplayBonesToSkinnedMesh(_boneNames);
     }
 
     public void ProcessRigUpdate(RigUpdate rigUpdate) {
@@ -74,19 +73,26 @@ public class GfxReplaySkinnedMesh
 
     /// <summary>
     /// Map gfx-replay bone names to skinned mesh bone names so that 'RigUpdate' indices can be matched to a bone.
+    /// For mapping to succeed, the following criteria have to be met:
+    /// * A skinned mesh renderer must be present.
+    /// * Bone counts of incoming rig and skinned mesh renderer must match.
+    /// * Bone names of incoming rig and skinned mesh renderer must math.
+    /// <returns>Returns true if mapping succeeded.</returns>
     /// </summary>
-    void mapGfxReplayBonesToSkinnedMesh(List<string> boneNames)
+    bool mapGfxReplayBonesToSkinnedMesh(List<string> boneNames)
     {
-        Assert.IsNotNull(boneNames);
-
-        if (_initialized || _skinnedMeshRenderer == null)
+        if (_initialized)
         {
-            return;
+            return true;
+        }
+        if (_skinnedMeshRenderer == null || _boneNames == null)
+        {
+            return false;
         }
         if (_skinnedMeshRenderer.bones.Length != boneNames.Count + 1) // 'boneNames' doesn't include the root.
         {
             Debug.LogError($"Skinned object '{_parent.name}' does not have the same number of bones than the rig {_parent.rigId}.");
-            return;
+            return false;
         }
 
         // Match Unity bones to Habitat bone indices using bone names.
@@ -108,11 +114,10 @@ public class GfxReplaySkinnedMesh
         if (matchedBoneCount != boneNames.Count)
         {
             Debug.LogError($"Skinned object '{_parent.name}' does not match the bones defined in rig {_parent.rigId}.");
-            return;
+            return false;
         }
 
         _skinnedMeshRenderer.enabled = true;
-        _initialized = true;
 
         // If a pose was already received, apply it immediately.
         if (_lastRigUpdate != null)
@@ -120,5 +125,7 @@ public class GfxReplaySkinnedMesh
             ProcessRigUpdate(_lastRigUpdate);
             _lastRigUpdate = null;
         }
+
+        return true;
     }
 }
