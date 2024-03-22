@@ -1,51 +1,105 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Assertions;
 
 /// <summary>
 /// Allows to control a skinned/rigged mesh from gfx-replay "RigCreation" and "RigUpdate" keyframes.
-/// The component is expected to be added to the root object of a skinned mesh.
+/// Acts as a placeholder until 'Initialize' is called, and until the first 'RigCreation' is received.
 /// </summary>
-public class GfxReplaySkinnedMesh : MonoBehaviour
+public class GfxReplaySkinnedMesh
 {
-    /// <summary>
-    /// Gfx-replay rigId associated with this skinned mesh.
-    /// </summary>
-    public int rigId {get; set;} = Constants.ID_UNDEFINED;
-
     private Transform[] _bones;
 
     SkinnedMeshRenderer _skinnedMeshRenderer;
+    GfxReplayInstance _parent;
+    bool _initialized = false;
+    List<string> _boneNames;
+    RigUpdate _lastRigUpdate;
 
-    void Awake()
+    public GfxReplaySkinnedMesh(GfxReplayInstance parent)
     {
-        // Find the skinned mesh renderer.
-        // This component is automatically created by the asset pipeline upon importing a skinned mesh.
-        _skinnedMeshRenderer = GetComponentInChildren<SkinnedMeshRenderer>();
-        if (_skinnedMeshRenderer == null)
+        _parent = parent;
+    }
+
+    /// <summary>
+    /// Initialize the skinned mesh.
+    /// To be called after the skinned mesh has been loaded.
+    /// </summary>
+    public void Initialize(SkinnedMeshRenderer skinnedMeshRenderer)
+    {
+        if (skinnedMeshRenderer == null)
         {
-            Debug.LogError($"Object '{name}' has no SkinnedMeshRenderer. Skinning will not be applied.");
-            enabled = false;
             return;
         }
+        _skinnedMeshRenderer = skinnedMeshRenderer;
 
         // Hide the skinned mesh until it is configured (i.e. until RigCreation is received).
         _skinnedMeshRenderer.enabled = false;
 
-        // We don't update bounds every update. Instead, we never cull the skinned mesh.
+        // We don't update the bounding box every update manually.
         _skinnedMeshRenderer.updateWhenOffscreen = true;
+
+        // If we already received bone names from gfx-replay, start mapping.
+        if (_boneNames != null)
+        {
+            _initialized = mapGfxReplayBonesToSkinnedMesh(_boneNames, _skinnedMeshRenderer);
+        }
     }
 
-    public void configureRigInstance(List<string> boneNames)
+    public void ProcessRigCreation(RigCreation rigCreation)
     {
-        if (!enabled)
+        _boneNames = rigCreation.boneNames;
+
+        // If we already initialized the skinned mesh, start mapping.
+        if (_skinnedMeshRenderer != null)
         {
+            _initialized = mapGfxReplayBonesToSkinnedMesh(_boneNames, _skinnedMeshRenderer);
+        }
+    }
+
+    public void ProcessRigUpdate(RigUpdate rigUpdate) {
+        // If the skinned mesh is not yet initialized, remember the pose so that it can be applied after loading.
+        if (!_initialized)
+        {
+            _lastRigUpdate = rigUpdate;
             return;
         }
-        if (_skinnedMeshRenderer.bones.Length != boneNames.Count + 1) // 'boneNames' doesn't include the root.
+
+        var pose = rigUpdate.pose;
+        Assert.IsNotNull(_bones);
+        Assert.AreEqual(pose.Count, _bones.Length);
+
+        for (int i = 0; i < pose.Count; ++i)
         {
-            Debug.LogError($"Skinned object '{name}' does not have the same number of bones than the rig {rigId}.");
-            enabled = false;
-            return;
+            _bones[i].position = CoordinateSystem.ToUnityVector(pose[i].t);
+            // TODO: The bones are offset by 180 degrees around the Y-axis.
+            _bones[i].rotation = CoordinateSystem.ToUnityQuaternion(pose[i].r) * Quaternion.Euler(0, 180, 0);
+        }
+    }
+
+    /// <summary>
+    /// Map gfx-replay bone names to skinned mesh bone names so that 'RigUpdate' indices can be matched to a bone.
+    /// For mapping to succeed, the following criteria have to be met:
+    /// * A skinned mesh renderer must be present (see Initialize()).
+    /// * Bone names must be received (see ProcessRigCreation()).
+    /// * Bone counts of incoming rig and skinned mesh renderer must match.
+    /// * Bone names of incoming rig and skinned mesh renderer must math.
+    /// <returns>Returns true if mapping succeeded.</returns>
+    /// </summary>
+    bool mapGfxReplayBonesToSkinnedMesh(List<string> boneNames, SkinnedMeshRenderer skinnedMeshRenderer)
+    {
+        if (_initialized)
+        {
+            return true;
+        }
+        if (skinnedMeshRenderer == null || boneNames == null)
+        {
+            return false;
+        }
+        if (skinnedMeshRenderer.bones.Length != boneNames.Count + 1) // 'boneNames' doesn't include the root.
+        {
+            Debug.LogError($"Skinned object '{_parent.name}' does not have the same number of bones than the rig {_parent.rigId}.");
+            return false;
         }
 
         // Match Unity bones to Habitat bone indices using bone names.
@@ -54,11 +108,11 @@ public class GfxReplaySkinnedMesh : MonoBehaviour
         int matchedBoneCount = 0;
         for (int i = 0; i < boneNames.Count; ++i)
         {
-            for (int j = 0; j < _skinnedMeshRenderer.bones.Length; ++j)
+            for (int j = 0; j < skinnedMeshRenderer.bones.Length; ++j)
             {
-                if (boneNames[i] == _skinnedMeshRenderer.bones[j].gameObject.name)
+                if (boneNames[i] == skinnedMeshRenderer.bones[j].gameObject.name)
                 {
-                    _bones[i] = _skinnedMeshRenderer.bones[j];
+                    _bones[i] = skinnedMeshRenderer.bones[j];
                     ++matchedBoneCount;
                     continue;
                 }
@@ -66,35 +120,19 @@ public class GfxReplaySkinnedMesh : MonoBehaviour
         }
         if (matchedBoneCount != boneNames.Count)
         {
-            Debug.LogError($"Skinned object '{name}' does not match the bones defined in rig {rigId}.");
-            enabled = false;
+            Debug.LogError($"Skinned object '{_parent.name}' does not match the bones defined in rig {_parent.rigId}.");
+            return false;
         }
 
-        _skinnedMeshRenderer.enabled = true;
-    }
+        skinnedMeshRenderer.enabled = true;
 
-    public void setPose(List<RigUpdate.BoneTransform> pose) {
-        if (!enabled)
+        // If a pose was already received, apply it immediately.
+        if (_lastRigUpdate != null)
         {
-            return;
-        }
-        if (_bones == null)
-        {
-            Debug.LogError($"Skinned object '{name}' is not configured.");
-            enabled = false;
-            return;
-        }
-        if (pose == null || pose.Count != _bones.Length)
-        { 
-            Debug.LogError($"Invalid pose submitted to skinned object '{name}'.");
-            enabled = false;
-            return;
+            ProcessRigUpdate(_lastRigUpdate);
+            _lastRigUpdate = null;
         }
 
-        for (int i = 0; i < pose.Count; ++i)
-        {
-            _bones[i].position = CoordinateSystem.ToUnityVector(pose[i].t);
-            _bones[i].rotation = CoordinateSystem.ToUnityQuaternion(pose[i].r);
-        }
+        return true;
     }
 }

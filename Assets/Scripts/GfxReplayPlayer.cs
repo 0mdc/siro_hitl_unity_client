@@ -22,7 +22,7 @@ public class GfxReplayPlayer : IUpdatable
     private Dictionary<int, GfxReplayInstance> _instanceDictionary = new();
     private Dictionary<string, Load> _loadDictionary = new();
     private Dictionary<int, MovementData> _movementData = new();
-    Dictionary<int, GfxReplaySkinnedMesh> _skinnedMeshes = new();
+    Dictionary<int, GfxReplayInstance> _skinnedMeshes = new();
     CoroutineContainer _coroutines;
     IKeyframeMessageConsumer[] _messageConsumers;
     private float _keyframeInterval = 0.1f;  // assume 10Hz, but see also SetKeyframeRate
@@ -38,32 +38,6 @@ public class GfxReplayPlayer : IUpdatable
         Assert.IsTrue(rate > 0.0F);
         float adjustedRate = Mathf.Clamp(rate, 10, 30);
         _keyframeInterval = 1.0F / adjustedRate;
-    }
-
-    // simplify "path/abc/../to/file" to "path/to/file"
-    static string SimplifyRelativePath(string path)
-    {
-        string[] parts = path.Split(new char[] { '/' }, StringSplitOptions.RemoveEmptyEntries);
-        var simplifiedParts = new List<string>();
-
-        foreach (var part in parts)
-        {
-            if (part == ".." && simplifiedParts.Count > 0)
-            {
-                simplifiedParts.RemoveAt(simplifiedParts.Count - 1);  // Remove the previous directory
-            }
-            else if (part != "." && part != "..")
-            {
-                simplifiedParts.Add(part);
-            }
-        }
-
-        return string.Join("/", simplifiedParts);
-    }
-
-    static string getResourcePath(string sourceFilepath)
-    {
-        return SimplifyRelativePath(sourceFilepath).Replace(".glb", "");
     }
 
     private void ProcessStateUpdatesImmediate(KeyframeData keyframe)
@@ -239,20 +213,16 @@ public class GfxReplayPlayer : IUpdatable
                     continue;
                 }
 
-                string resourcePath = getResourcePath(source);
-                var instance = GfxReplayInstance.LoadAndInstantiate(creationItem.instanceKey.ToString(), resourcePath, load.frame);
-
-                if (creationItem.creation.scale != null)
-                {
-                    instance.transform.localScale = creationItem.creation.scale.ToVector3();
-                }
+                var instance = GfxReplayInstance.LoadAndInstantiate(
+                    creationItem.instanceKey.ToString(),
+                    load,
+                    creationItem.creation
+                );
 
                 int rigId = creationItem.creation.rigId;
                 if (rigId != Constants.ID_UNDEFINED)
                 {
-                    var skinnedMesh = instance.gameObject.AddComponent<GfxReplaySkinnedMesh>();
-                    skinnedMesh.rigId = rigId;
-                    _skinnedMeshes[rigId] = skinnedMesh;
+                    _skinnedMeshes[rigId] = instance;
                 }
 
                 _instanceDictionary[creationItem.instanceKey] = instance;
@@ -265,9 +235,9 @@ public class GfxReplayPlayer : IUpdatable
             foreach (var rigCreation in keyframe.rigCreations)
             {
                 int rigId = rigCreation.id;
-                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplaySkinnedMesh skinnedMesh))
+                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplayInstance instance))
                 {
-                    skinnedMesh.configureRigInstance(rigCreation.boneNames);
+                    instance.ProcessRigCreation(rigCreation);
                 }
             }
         }
@@ -277,9 +247,9 @@ public class GfxReplayPlayer : IUpdatable
             foreach (var rigUpdate in keyframe.rigUpdates)
             {
                 int rigId = rigUpdate.id;
-                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplaySkinnedMesh skinnedMesh))
+                if (_skinnedMeshes.TryGetValue(rigId, out GfxReplayInstance instance))
                 {
-                    skinnedMesh.setPose(rigUpdate.pose);
+                    instance.ProcessRigUpdate(rigUpdate);
                 }
             }
         }
@@ -291,12 +261,11 @@ public class GfxReplayPlayer : IUpdatable
         {
             foreach (var key in keyframe.deletions)
             {
-                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance obj))
+                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance instance))
                 {
-                    GfxReplaySkinnedMesh skinnedMesh = obj.GetComponent<GfxReplaySkinnedMesh>();
-                    if (skinnedMesh != null)
+                    if (instance.rigId != Constants.ID_UNDEFINED)
                     {
-                        _skinnedMeshes.Remove(skinnedMesh.rigId);
+                        _skinnedMeshes.Remove(instance.rigId);
                     }
                 }
                 
