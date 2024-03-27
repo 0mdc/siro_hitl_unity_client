@@ -16,6 +16,12 @@ public class CoroutineContainer : MonoBehaviour
         return new GameObject(name).AddComponent<CoroutineContainer>();
     }
 
+    void Update()
+    {
+        // This magic is required for coroutines to continue executing after the `yield` keyword.
+        return;
+    }
+
     // The string 'methodName' argument requires the target method to be within a MonoBehavior object.
     // Use the newer StartCoroutine(IEnumerator) instead.
     new public void CancelInvoke()
