@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.AddressableAssets;
 
 /// <summary>
 /// Represents a Habitat object instance from gfx-replay.
@@ -8,6 +9,11 @@ using UnityEngine;
 /// </summary>
 public class GfxReplayInstance : MonoBehaviour
 {
+    private const int LOAD_RETRY_COUNT = 5;
+    private const float INCREMENTAL_WAIT_TIME_PER_RETRY = 1.0f;
+    private GameObject _prefab;
+    private Coroutine _loadingCoroutine;
+
     /// <summary>
     /// Gfx-replay rigId associated with this instance.
     /// </summary>
@@ -73,25 +79,58 @@ public class GfxReplayInstance : MonoBehaviour
         return offsetNode;
     }
 
-
     void Load(string address, Load loadInfo, Creation creationInfo)
     {
+        _loadingCoroutine = StartCoroutine(LoadAsync(address, loadInfo, creationInfo));
+    }
+
+    IEnumerator LoadAsync(string address, Load loadInfo, Creation creationInfo)
+    {
+        // Create skinned mesh placeholder.
         rigId = creationInfo.rigId;
         if (rigId != Constants.ID_UNDEFINED)
         {
             skinnedMesh = new GfxReplaySkinnedMesh(this);
         }
 
-        // TODO: Asynchronous resource loading.
-        GameObject prefab = Resources.Load<GameObject>(address);
-
-        if (prefab == null)
+        // Check if key exists
+        var keyExistsHandle = Addressables.LoadResourceLocationsAsync(address);
+        yield return keyExistsHandle;
+        if (keyExistsHandle.Result.Count > 0)
         {
-            Debug.LogError($"Unable to load GameObject for '{address}'.");
-            return;
-        }
+            int retryCount = 0;
+            do 
+            {
+                var loadHandle = Addressables.LoadAssetAsync<GameObject>(address);
+                while (!loadHandle.IsDone)
+                {
+                    // TODO: Update progress bar and skip a frame.
+                    yield return null;
+                }
+                if (loadHandle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
+                {
+                    _prefab = loadHandle.Result;
 
-        PostLoad(prefab, loadInfo, creationInfo);
+                    // Finish object setup.
+                    PostLoad(_prefab, loadInfo, creationInfo);
+                    yield break;
+                }
+                else
+                {
+                    float retryWaitTime = ++retryCount * INCREMENTAL_WAIT_TIME_PER_RETRY;
+                    Debug.LogError($"Unable to load GameObject for '{address}'. Retrying in {string.Format("{0:F1}", retryWaitTime)}s.");
+                    yield return new WaitForSecondsRealtime(INCREMENTAL_WAIT_TIME_PER_RETRY * ++retryCount);
+                }
+            } while (_prefab == null && retryCount <= LOAD_RETRY_COUNT);
+                        
+            Debug.LogError($"Unable to load '{address}' after {LOAD_RETRY_COUNT} attempts. Deactivating asset.");
+            yield break;
+        }
+        else
+        {
+            Debug.LogError($"Addressable key does not exist: '{address}'.");
+            yield break;
+        }
     }
 
     void PostLoad(GameObject prefab, Load loadInfo, Creation creationInfo)
@@ -117,11 +156,34 @@ public class GfxReplayInstance : MonoBehaviour
                 skinnedMesh.Initialize(instance.GetComponentInChildren<SkinnedMeshRenderer>());
             }
         }
+
+        // Hack: Refresh materials in the Editor.
+        //       If testing with real assets, shaders may be compiled for Android or WebGL.
+        //       This re-generates them for the Editor to avoid pink materials.
+        #if UNITY_EDITOR
+            var renderers = transform.GetComponentsInChildren<Renderer>();
+            foreach (var renderer in renderers)
+            {
+                foreach (var material in renderer.materials)
+                {
+                    material.shader = Shader.Find(material.shader.name);
+                }
+            }
+        #endif
     }
 
     // MonoBehaviour function that is called when the object is destroyed.
     private void OnDisable()
     {
-        // TODO: Stop asynchronous loading.
+        // Decrement refcount.
+        if (_prefab != null)
+        {
+            Addressables.Release(_prefab);
+        }
+        // Stop loading.
+        if (_loadingCoroutine != null)
+        {
+            StopCoroutine(_loadingCoroutine);
+        }
     }
 }
