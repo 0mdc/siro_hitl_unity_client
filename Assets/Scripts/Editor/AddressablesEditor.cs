@@ -37,11 +37,7 @@ public static class AddressablesEditor
     {
         return File.Exists(EDITOR_HABITAT_METADATA_PATH);
     }
-    public static string PackageToUnityPath(string path)
-    {
-        return Path.Combine(INPUT_ASSET_FOLDER, path);
-    }
-    public static string PackageToHabitatPath(string path)
+    public static string AddressToUnityPath(string path)
     {
         return Path.Combine(INPUT_ASSET_FOLDER, path);
     }
@@ -337,10 +333,10 @@ public static class AddressablesEditor
             }
         }
 
-        // Read metadata json file
+        // Read metadata json file.
         var metadataFile = ReadMetadataFile();
 
-        // Move to function
+        // Generate addressable groups.
         var remoteGroup = CreateAddressableGroup("remote");
         {
             BundledAssetGroupSchema bags = CreateOrGetAddressableGroupSchema<BundledAssetGroupSchema>(remoteGroup);
@@ -363,7 +359,6 @@ public static class AddressablesEditor
             remoteGroup.GetSchema<BundledAssetGroupSchema>().LoadPath.SetVariableById(settings, idInfo.Id);
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.GroupSchemaModified, remoteGroup, true);
         }
-        // Move to function
         var localGroup = CreateAddressableGroup(metadataFile.local_group_name);
         {
             BundledAssetGroupSchema bags = CreateOrGetAddressableGroupSchema<BundledAssetGroupSchema>(localGroup);
@@ -385,9 +380,7 @@ public static class AddressablesEditor
             settings.SetDirty(AddressableAssetSettings.ModificationEvent.GroupSchemaModified, localGroup, true);
         }
 
-        // Create short labels so that generated file names remain sane.
         uint labelCounter = 0;
-
         foreach (var group in metadataFile.groups)
         {
             // Check if this is the local package.
@@ -401,14 +394,14 @@ public static class AddressablesEditor
                 settings.AddLabel(label);
             }
 
-            foreach (var assetPath in group.Value)
+            foreach (var address in group.Value)
             {
                 // Check whether this asset needs to be packaged with the local group.
                 // TODO: If the asset is in all remote packages, mark it as local.
                 bool isLocalAsset = isLocalGroup;
 
                 // Identify the asset in Unity.
-                var unityAssetPath = PackageToUnityPath(assetPath);
+                var unityAssetPath = AddressToUnityPath(address);
                 string guid = GetAssetGUID(unityAssetPath);
 
                 // Assign the group.
@@ -417,12 +410,12 @@ public static class AddressablesEditor
                 var entry = settings.FindAssetEntry(guid);
                 if (entry == null)
                 {
-                    Debug.LogError($"Asset {assetPath} was not imported correctly into Unity. It will be excluded from the catalog.");
+                    Debug.LogError($"Asset {address} was not imported correctly into Unity. It will be excluded from the catalog.");
                     continue;
                 }
 
                 // Assign the address.
-                entry.address = PackageToHabitatPath(assetPath);
+                entry.address = address;
 
                 // Assign the label.
                 // Unity will package all assets with the same combination of labels together.

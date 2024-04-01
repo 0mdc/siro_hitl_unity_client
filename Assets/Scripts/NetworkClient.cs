@@ -282,7 +282,7 @@ public class NetworkClient : IUpdatable
                 {
                     // This was a short connection. Disconnected most likely due to server already having a client.
                     _disconnectReason = "Server is busy!";
-                    _delayReconnect = _serverURLs.Count == 1 ? 10.0f : 3.0f;
+                    _delayReconnect = _serverURLs.Count == 1 ? 5.0f : 2.0f;
                 }
             }
         };
