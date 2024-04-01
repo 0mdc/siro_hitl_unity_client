@@ -10,13 +10,6 @@
 /[Ll]ogs/
 /[Uu]ser[Ss]ettings/
 
-# hack to identify other build folders
-/*DoNotShip/
-
-# this is SIRo data that will be installed separately from source control
-/Assets/Resources/data
-/Assets/Resources/data.meta
-
 # Mac OS file
 .DS_Store
 
@@ -91,3 +84,22 @@ crashlytics-build.properties
 # Temporary auto-generated Android Assets
 /[Aa]ssets/[Ss]treamingAssets/aa.meta
 /[Aa]ssets/[Ss]treamingAssets/aa/*
+
+### Habitat-Specific
+
+# Imported Habitat data folder.
+/Assets/HabitatData/
+/Assets/HabitatData.meta
+
+# Legacy Habitat data folder.
+/Assets/Resources/data
+/Assets/Resources/data.meta
+
+# Addressable Assets
+# It is generally recommended to version these assets.
+# However, in our case, we procedurally generate them based on imported Habitat data.
+/Assets/AddressableAssetsData/
+/Assets/AddressableAssetsData.meta
+
+# Remote assets.
+/ServerData
