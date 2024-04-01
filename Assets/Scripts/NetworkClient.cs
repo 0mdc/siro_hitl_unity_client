@@ -30,6 +30,8 @@ public class NetworkClient : IUpdatable
 {
     const float CLIENT_STATE_SEND_FREQUENCY = 0.1f;
 
+    const bool IS_HTTPS = false;
+
     public class FlagObject
     {
         private bool flag = false;
@@ -91,14 +93,26 @@ public class NetworkClient : IUpdatable
         _connectionParams = ConnectionParameters.GetConnectionParameters(Application.absoluteURL);
         var serverHostnameOverride = ConnectionParameters.GetServerHostname(_connectionParams);
         var serverPortRange = ConnectionParameters.GetServerPortRange(_connectionParams);
+        var assetHostname = ConnectionParameters.GetAssetHostname(_connectionParams);
+        var assetPort = ConnectionParameters.GetAssetPort(_connectionParams);
+        var assetPath = ConnectionParameters.GetAssetPath(_connectionParams);
+
+        // Set remote asset server location. See 'HabitatAssetServer'.
+        // These static variables are interpreted by the Addressables system the first time it is used.
+        if (assetHostname != null)
+            HabitatAssetServer.Address = assetHostname;
+        if (assetPort != null)
+            HabitatAssetServer.Port = assetPort.ToString();
+        if (assetPath != null)
+            HabitatAssetServer.Path = assetPath;
+        HabitatAssetServer.Protocol = IS_HTTPS ? "https" : "http";
 
         if (serverPortRange == null)
         {
             serverPortRange = (defaultServerPort, defaultServerPort);
         }
 
-        bool isHttps = false;
-        string wsProtocol = isHttps ? "wss" : "ws";
+        string wsProtocol = IS_HTTPS ? "wss" : "ws";
         // Set up server hostnames and port.
         string[] serverLocations = serverHostnameOverride != null ? 
                                         new[]{serverHostnameOverride} : 
