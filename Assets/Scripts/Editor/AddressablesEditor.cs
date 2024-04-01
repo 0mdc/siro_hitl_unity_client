@@ -15,6 +15,9 @@ using Newtonsoft.Json.Linq;
 
 namespace Habitat.Editor
 {
+/// <summary>
+/// This class contains a set of Editor tools to import Habitat data and make it available using Addressables.
+/// </summary>
 public static class AddressablesEditor
 {
     [Serializable]
@@ -26,11 +29,22 @@ public static class AddressablesEditor
         public Dictionary<string, List<string>> groups;
     }
 
+    /// <summary>Name of the metadata file consumed by this asset pipeline.</summary>
     public const string METADATA_FILE_NAME = "metadata.json";
+
+    /// <summary>Version of the metadata file. It is bumped when backward compatibility is broken.</summary>
     public const int METADATA_FILE_VERSION = 1;
+
+    /// <summary>Directory where Habitat data is imported. Ignored on git.</summary>
     public const string INPUT_ASSET_FOLDER = "Assets/HabitatData";
+
+    /// <summary>Location where METADATA_FILE_NAME is imported.</summary>
     public const string EDITOR_HABITAT_METADATA_PATH = INPUT_ASSET_FOLDER + "/" + METADATA_FILE_NAME;
+
+    /// <summary>Location where addressable assets are exported. Ignored on git.</summary>
     public const string OUTPUT_ASSET_FOLDER = "ServerData";
+
+    /// <summary>Name of the addressable profile.</summary>
     const string PROFILE_NAME = "habitat";
 
     public static bool MetadataExist()
@@ -43,27 +57,33 @@ public static class AddressablesEditor
     }
 
     /// <summary>
-    /// Create a short package name.
-    /// Label names are combined together. To avoid collisions, the first character is alpha and subsequent characters are digits.
+    /// Create a short addressable label name from an index.
+    /// Asset dependencies are assigned a label. For example, a window that is used by 3 scenes will be assigned 3 labels.
+    /// Label combinations are included in addressable assets and bundle names. Combinations can be long, so they are shortened.
+    /// To avoid collisions, the first character of the label is a letter, and subsequent characters are digits.
     /// Examples: "a", "F0", "d94"
     /// </summary>
     /// <param name="counter">Sequential counter from which a label name is created.</param>
     /// <returns></returns>
-    public static string CreateShortLabelName(uint counter)
+    public static string CreateShortLabelName(uint index)
     {
         const uint LETTER_COUNT = 52;
         const uint LOWERCASE_COUNT = 26;
-        const uint LOWERCASE_INDEX = 'a';
-        const uint UPPERCASE_INDEX = 'A';
-        uint char_index = counter % LETTER_COUNT;
-        uint alpha_index = counter % LOWERCASE_COUNT;
-        uint char_range = char_index < LOWERCASE_COUNT ? LOWERCASE_INDEX : UPPERCASE_INDEX;
-        uint digits = counter / LETTER_COUNT;
-        char prefix = (char)(char_range + alpha_index);
+        const uint LOWERCASE_FIRST_CHAR = 'a';
+        const uint UPPERCASE_FIRST_CHAR = 'A';
+        uint char_index = index % LETTER_COUNT;
+        uint char_case_index = index % LOWERCASE_COUNT;
+        uint first_char_index = char_index < LOWERCASE_COUNT ? LOWERCASE_FIRST_CHAR : UPPERCASE_FIRST_CHAR;
+        uint digits = index / LETTER_COUNT;
+        char prefix = (char)(first_char_index + char_case_index);
         string suffix = digits == 0 ? "" : (digits - 1u).ToString();
         return prefix + suffix;
     }
 
+    /// <summary>
+    /// Read the METADATA_FILE_NAME and deserializes it.
+    /// </summary>
+    /// <returns>Deserialized MetadataFile object.</returns>
     public static MetadataFile ReadMetadataFile()
     {
         if (!MetadataExist())
@@ -85,48 +105,17 @@ public static class AddressablesEditor
         return JsonConvert.DeserializeObject<MetadataFile>(textContent, new JsonSerializerSettings());
     }
 
-    public static AssetReference AddAssetToAddressables(string guid)
-    {
-        AddressableAssetSettings settings = AddressableAssetSettingsDefaultObject.Settings;
-        return settings.CreateAssetReference(guid);
-    }
-
+    /// <summary>
+    /// Get the internal Unity GUID from a specified path.
+    /// </summary>
+    /// <param name="unityAssetPath">Path relative to the Unity project folder.</param>
+    /// <returns>Internal GUID.</returns>
     public static string GetAssetGUID(string unityAssetPath)
     {
         return AssetDatabase.AssetPathToGUID(unityAssetPath);
     }
 
-    /// <summary>
-    /// Returns true if the asset is in all groups.
-    /// In this case, the asset will be provided along with the build.
-    /// </summary>
-    static bool ShouldAssetBePackagedInLocalGroup(string assetAddress, Dictionary<string, int> occurrences, int packageCountWithoutLocal)
-    {
-        if (occurrences.TryGetValue(assetAddress, out int occurrence))
-        {
-            return occurrence == packageCountWithoutLocal;
-        }
-        else
-        {
-            Debug.LogError($"Unknown asset: {assetAddress}");
-            return false;
-        }
-    }
-
-    [MenuItem ("Habitat/Open Remote Asset Directory")]
-    static void OpenRemoteAssetDirectory()
-    {
-        string outputDataDir = Path.Combine(Directory.GetCurrentDirectory(), OUTPUT_ASSET_FOLDER);
-        if (Directory.Exists(outputDataDir))
-        {
-            Application.OpenURL($"file://{outputDataDir}");
-        }
-        else
-        {
-            Debug.LogError("The server asset directory has not been created. Use 'Habitat/Build Catalog' to build it.");
-        }
-    }
-
+    /// <summary>Copy a directory and all of its content recursively.</summary>
     static void CopyDirectory(string sourceDir, string destinationDir, bool recursive)
     {
         var sourceInfo = new DirectoryInfo(sourceDir);
@@ -155,55 +144,33 @@ public static class AddressablesEditor
     }
 
     /// <summary>
-    /// Search for the Habitat data folder. It is defined as the directory containing the metadata json file.
-    /// This function aims to improve developer experience by tolerating selection of a parent directory.
+    /// Open the directory that contains the generated addressables assets.
     /// </summary>
-    /// <param name="inputDir">Candidate directory.</param>
-    /// <returns>Directory containing Habitat data. Returns null if invalid.</returns>
-    static string FindHabitatDataDirectory(string inputDir, int maxDepth = 2)
+    [MenuItem ("Habitat/Open Remote Asset Directory")]
+    static void OpenRemoteAssetDirectory()
     {
-        if (maxDepth <= 0)
+        string outputDataDir = Path.Combine(Directory.GetCurrentDirectory(), OUTPUT_ASSET_FOLDER);
+        if (Directory.Exists(outputDataDir))
         {
-            return null;
+            Application.OpenURL($"file://{outputDataDir}");
         }
-
-        // Check if directory contains metadata.
-        var inputInfo = new DirectoryInfo(inputDir);
+        else
         {
-            var files = inputInfo.GetFiles();
-            foreach (var fileInfo in files)
-            {
-                if (fileInfo.Name == METADATA_FILE_NAME)
-                {
-                    return inputDir;
-                }
-            }
+            Debug.LogError("The server asset directory has not been created. Use 'Habitat/Build Catalog' to build it.");
         }
-        // Search for a valid subdirectory.
-        maxDepth--;
-        var subDirs = inputInfo.GetDirectories();
-        foreach (var subdirInfo in subDirs)
-        {
-            string subdirResult = FindHabitatDataDirectory(subdirInfo.FullName, maxDepth - 1);
-            if (subdirResult != null)
-            {
-                return subdirResult;
-            }
-        }
-        // If the directory tree does not contain metadata, return null.
-        return null;
     }
 
     /// <summary>
     /// Import Habitat datasets (data folder) into the project.
-    /// The incoming data folder is expected to be beside a METADATA_FILE_NAME file.
-    /// After this step is done:
-    /// - The assets can be used in the Editor for testing.
-    /// - The addressables catalog can be built. See BuildCatalog().
+    /// The incoming data folder is expected to be beside a METADATA_FILE_NAME file.<br/>
+    /// After this step is done:<br/>
+    /// * The assets can be used in the Editor for testing.<br/>
+    /// * The addressables catalog can be built. See BuildCatalog().<br/>
     /// </summary>
     [MenuItem ("Habitat/Import Habitat Data")]
     static void ImportHabitatDataDirectory()
     {
+        // Warn the user that previous data will be deleted.
         string unityInputDataDir = Path.Combine(Directory.GetCurrentDirectory(), INPUT_ASSET_FOLDER);
         if (Directory.Exists(unityInputDataDir))
         {
@@ -216,6 +183,7 @@ public static class AddressablesEditor
             return;
         }
         
+        // Open dialogue to select a METADATA_FILE_NAME file.
         string metadataPath = EditorUtility.OpenFilePanel(
             title: $"Import {METADATA_FILE_NAME}.",
             directory: "",
@@ -226,6 +194,7 @@ public static class AddressablesEditor
             return;
         }
 
+        // Warn the user if a 'data' folder is not located next to METADATA_FILE_NAME. 
         var subdirectories = new FileInfo(metadataPath).Directory.GetDirectories();
         if (subdirectories.Length == 0)
         {
@@ -233,6 +202,7 @@ public static class AddressablesEditor
             return;
         }
 
+        // Delete the previous data directory.
         if (Directory.Exists(unityInputDataDir))
         {
             Debug.Log($"Deleting {INPUT_ASSET_FOLDER} directory...");
@@ -242,24 +212,34 @@ public static class AddressablesEditor
             {
                 File.Delete(metaFilePath);
             }
+            AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
         }
         
+        // Create the data directory.
         Debug.Log($"Creating {INPUT_ASSET_FOLDER} directory...");
         Directory.CreateDirectory(unityInputDataDir);
 
+        // Import METADATA_FILE_NAME.
         Debug.Log($"Importing {METADATA_FILE_NAME}...");
         string inputMetadataFile = Path.Combine(unityInputDataDir, METADATA_FILE_NAME);
         File.Copy(metadataPath, inputMetadataFile, overwrite: true);
 
+        // Import subdirectories.
         Debug.Log("Importing Habitat Data Folder...");
         CopyDirectory(new FileInfo(metadataPath).Directory.FullName, unityInputDataDir, recursive: true);
 
+        AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
     }
 
     /// <summary>
-    /// This function builds the addressables catalog.
+    /// Build the addressables catalog from the imported metadata file and Habitat datasets.<br/>
+    /// * There are two groups: Local and Remote.<br/>
+    /// * The local assets are packaged with the build.<br/>
+    /// * The remote assets are exported to OUTPUT_ASSET_FOLDER.<br/>
+    /// * OUTPUT_ASSET_FOLDER needs to be copied to a remote server for provisioning, but can be used in the editor for testing.
+    /// * Labels are used to mark dependencies. Assets with the same labels are bundled together.
     /// </summary>
     [MenuItem ("Habitat/Build Catalog")]
     static void BuildCatalog ()
@@ -448,6 +428,7 @@ public static class AddressablesEditor
         AddressableAssetSettings.BuildPlayerContent();
     }
 
+    /// <summary>Boilerplate to create an addressable group.</summary>
     public static AddressableAssetGroup CreateAddressableGroup(string groupName)
     {
         if (string.IsNullOrEmpty(groupName))
