@@ -394,14 +394,14 @@ public static class AddressablesEditor
                 settings.AddLabel(label);
             }
 
-            foreach (var address in group.Value)
+            foreach (var fileName in group.Value)
             {
                 // Check whether this asset needs to be packaged with the local group.
                 // TODO: If the asset is in all remote packages, mark it as local.
                 bool isLocalAsset = isLocalGroup;
 
                 // Identify the asset in Unity.
-                var unityAssetPath = AddressToUnityPath(address);
+                var unityAssetPath = AddressToUnityPath(fileName);
                 string guid = GetAssetGUID(unityAssetPath);
 
                 // Assign the group.
@@ -410,12 +410,14 @@ public static class AddressablesEditor
                 var entry = settings.FindAssetEntry(guid);
                 if (entry == null)
                 {
-                    Debug.LogError($"Asset {address} was not imported correctly into Unity. It will be excluded from the catalog.");
+                    Debug.LogError($"Asset {fileName} was not imported correctly into Unity. It will be excluded from the catalog.");
                     continue;
                 }
 
                 // Assign the address.
-                entry.address = address;
+                // Habitat excludes the extension, so we remove the extension here.
+                int extensionLength = new FileInfo(fileName).Extension.Length;
+                entry.address = fileName[..^extensionLength];
 
                 // Assign the label.
                 // Unity will package all assets with the same combination of labels together.
@@ -438,6 +440,9 @@ public static class AddressablesEditor
         {
             Directory.Delete(OUTPUT_ASSET_FOLDER, true);
         }
+
+        // Clean builder cache.
+        AddressableAssetSettings.CleanPlayerContent(AddressableAssetSettingsDefaultObject.Settings.ActivePlayerDataBuilder);
 
         // Build addressables using the current platform.
         AddressableAssetSettings.BuildPlayerContent();
