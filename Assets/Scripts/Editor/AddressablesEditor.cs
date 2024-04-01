@@ -308,7 +308,7 @@ public static class AddressablesEditor
             //     Using magic, the addressable system will find the static variables in the HabitatAssetServer static class.
             //     See https://docs.unity3d.com/Packages/com.unity.addressables@1.18/manual/AddressableAssetsProfiles.html.
             //     Therefore, the static variables 'HabitatAssetServer.Address' and 'HabitatAssetServer.Port' must be set before calling any Addressables API.
-            settings.profileSettings.SetValue(id, "Remote.LoadPath", "http://{HabitatAssetServer.Address}:{HabitatAssetServer.Port}/[BuildTarget]");
+            settings.profileSettings.SetValue(id, "Remote.LoadPath", "{HabitatAssetServer.Protocol}://{HabitatAssetServer.Address}:{HabitatAssetServer.Port}/{HabitatAssetServer.Path}/[BuildTarget]");
             settings.profileSettings.SetDirty(AddressableAssetSettings.ModificationEvent.ProfileAdded, id, true);
             // Set active profile.
             settings.activeProfileId = id;
