@@ -10,7 +10,8 @@
         "Unity.XR.Interaction.Toolkit.Samples.StarterAssets",
         "Unity.XR.Interaction.Toolkit",
         "Unity.XR.Management",
-        "Unity.Addressables"
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
