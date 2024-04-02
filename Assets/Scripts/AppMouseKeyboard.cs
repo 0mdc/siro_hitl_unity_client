@@ -62,7 +62,7 @@ public class AppMouseKeyboard : MonoBehaviour
         };
 
         // Initialize IClientStateProducers.
-        _inputTrackerMouse = new InputTrackerMouse();
+        _inputTrackerMouse = new InputTrackerMouse(_camera);
         _inputTrackerKeyboard = new InputTrackerKeyboard();
         var clientStateProducers = new IClientStateProducer[]
         {

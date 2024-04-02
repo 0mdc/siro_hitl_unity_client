@@ -5,6 +5,8 @@ public class InputTrackerMouse : IClientStateProducer
     // Left: 0, Right: 1, Middle: 2
     const int MOUSE_BUTTON_COUNT = 3;
 
+    Camera _camera;
+
     MouseInputData _inputData = new MouseInputData();
 
     bool[] _buttonHeld;
@@ -13,8 +15,12 @@ public class InputTrackerMouse : IClientStateProducer
 
     Vector2 _scrollDelta = Vector2.zero;
 
-    public InputTrackerMouse()
+    Ray _mouseRay = new Ray();
+
+    public InputTrackerMouse(Camera camera)
     {
+        _camera = camera;
+
         // Create arrays that hold whether buttons were pressed since the last OnEndFrame() call.
         _buttonHeld = new bool[MOUSE_BUTTON_COUNT];
         _buttonUp = new bool[MOUSE_BUTTON_COUNT];
@@ -43,6 +49,11 @@ public class InputTrackerMouse : IClientStateProducer
         }
 
         _scrollDelta += Input.mouseScrollDelta; // Cumulative
+
+        if (Input.mousePresent)
+        {
+            _mouseRay = _camera.ScreenPointToRay(Input.mousePosition);
+        }
     }
 
     public void OnEndFrame()
@@ -71,6 +82,9 @@ public class InputTrackerMouse : IClientStateProducer
             }
             _inputData.scrollDelta[0] = _scrollDelta.x;
             _inputData.scrollDelta[1] = _scrollDelta.y;
+
+            _inputData.rayOrigin = CoordinateSystem.ToHabitatVector(_mouseRay.origin).ToArray();
+            _inputData.rayDirection = CoordinateSystem.ToHabitatVector(_mouseRay.direction).ToArray();
         }
 
         state.mouse = _inputData;
