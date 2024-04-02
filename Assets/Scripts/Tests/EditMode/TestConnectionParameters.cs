@@ -142,6 +142,62 @@ namespace Habitat.Tests.EditMode
         }
 
         [Test]
+        public void TestGetAssetHostname()
+        {
+            string url;
+            string host;
+            Dictionary<string, string> parameters;
+
+            // Valid cases.
+            LogAssert.ignoreFailingMessages = false;
+
+            // Canonical case.
+            url = "test?asset_hostname=HOST&asset_port=1111&test=true";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, "HOST");
+
+            // No hostname.
+            url = "test?test=test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, null);
+
+            // No parameter.
+            url = "test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, null);
+
+            // IP hostname.
+            url = "test?asset_hostname=127.0.0.1";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, "127.0.0.1");
+
+            // Null input
+            host = ConnectionParameters.GetAssetHostname(null);
+            Assert.AreEqual(host, null);
+
+            // Invalid cases.
+            LogAssert.ignoreFailingMessages = true;
+
+            // Hostname with port. This is considered invalid.
+            url = "test?asset_hostname=127.0.0.1:1111";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, null);
+
+            // Invalid hostname.
+            url = "test?asset_hostname=test<>";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            host = ConnectionParameters.GetAssetHostname(parameters);
+            Assert.AreEqual(host, null);
+
+            LogAssert.ignoreFailingMessages = false;
+        }
+
+        [Test]
         public void TestTryParsePortString()
         {
             int port;
@@ -264,6 +320,106 @@ namespace Habitat.Tests.EditMode
             parameters = ConnectionParameters.GetConnectionParameters(url);
             portRange = ConnectionParameters.GetServerPortRange(parameters);
             Assert.AreEqual(portRange, null);
+
+            LogAssert.ignoreFailingMessages = false;
+        }
+
+        [Test]
+        public void TestGetAssetPort()
+        {
+            string url;
+            int? port;
+            Dictionary<string, string> parameters;
+
+            // Valid cases.
+            LogAssert.ignoreFailingMessages = false;
+
+            // Canonical asset_port.
+            url = "test?asset_hostname=HOST&asset_port=2222&test=true";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port.Value, 2222);
+
+            // No port.
+            url = "test?test=test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port, null);
+
+            // No parameter.
+            url = "test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port, null);
+
+            // Null input
+            port = ConnectionParameters.GetAssetPort(null);
+            Assert.AreEqual(port, null);
+
+            // Invalid cases.
+            LogAssert.ignoreFailingMessages = true;
+
+            // Invalid port.
+            url = "test?asset_port=test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port, null);
+
+            // Negative port.
+            url = "test?asset_port=-100";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port, null);
+
+            // Port > 65535.
+            url = "test?asset_port=1000000";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            port = ConnectionParameters.GetAssetPort(parameters);
+            Assert.AreEqual(port, null);
+
+            LogAssert.ignoreFailingMessages = false;
+        }
+
+        [Test]
+        public void TestGetAssetPath()
+        {
+            string url;
+            string path;
+            Dictionary<string, string> parameters;
+
+            // Valid cases.
+            LogAssert.ignoreFailingMessages = false;
+
+            // Canonical case.
+            url = "test?asset_path=test/test&asset_port=1111&test=true";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            path = ConnectionParameters.GetAssetPath(parameters);
+            Assert.AreEqual(path, "test/test");
+
+            // No path.
+            url = "test?test=test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            path = ConnectionParameters.GetAssetPath(parameters);
+            Assert.AreEqual(path, null);
+
+            // No parameter.
+            url = "test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            path = ConnectionParameters.GetAssetPath(parameters);
+            Assert.AreEqual(path, null);
+
+            // Null input
+            path = ConnectionParameters.GetAssetPath(null);
+            Assert.AreEqual(path, null);
+
+            // Invalid cases.
+            LogAssert.ignoreFailingMessages = true;
+
+            // Invalid path.
+            url = "test?asset_path=test\\test";
+            parameters = ConnectionParameters.GetConnectionParameters(url);
+            path = ConnectionParameters.GetAssetPath(parameters);
+            Assert.AreEqual(path, null);
 
             LogAssert.ignoreFailingMessages = false;
         }

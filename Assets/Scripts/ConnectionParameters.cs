@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Web;
 using UnityEngine;
 
@@ -128,6 +129,91 @@ public static class ConnectionParameters
             else
             {
                 Debug.LogError($"Invalid server_port: '{serverPortString}'. Expected format: 'server_port=2222'.");
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get a valid asset hostname from query parameters.
+    /// The 'asset_hostname' parameter defines where to fetch remote assets.
+    /// </summary>
+    /// <param name="queryParams">See GetConnectionParameters().</param>
+    /// <returns>Hostname string. Returns null if the input does not contain a valid hostname.</returns>
+    public static string? GetAssetHostname(Dictionary<string, string> queryParams)
+    {
+        if (queryParams == null) return null;
+
+        if (queryParams.TryGetValue("asset_hostname", out string assetHostnameString))
+        {
+            if (Uri.CheckHostName(assetHostnameString) != UriHostNameType.Unknown)
+            {
+                return assetHostnameString;
+            }
+            else
+            {
+                Debug.LogError($"Invalid asset_hostname: '{assetHostnameString}'");
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get a valid asset port from query parameters.
+    /// The 'asset_port' parameter defines where to fetch remote assets.
+    /// </summary>
+    /// <param name="queryParams">See GetConnectionParameters().</param>
+    /// <returns>Port. Returns null if the input does not contain a valid port.</returns>
+    public static int? GetAssetPort(Dictionary<string, string> queryParams)
+    {
+        if (queryParams == null) return null;
+
+        if (queryParams.TryGetValue("asset_port", out string assetPortString))
+        {
+            if (TryParsePortString(assetPortString, out int port))
+            {
+                return port;
+            }
+            else
+            {
+                Debug.LogError($"Invalid asset_port: '{assetPortString}'. Expected format: 'asset_port=2222'.");
+            }
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Get a valid asset path from query parameters.
+    /// The 'asset_path' parameter defines where to fetch remote assets.
+    /// </summary>
+    /// <param name="queryParams">See GetConnectionParameters().</param>
+    /// <returns>Port. Returns null if the input does not contain a valid path.</returns>
+    public static string? GetAssetPath(Dictionary<string, string> queryParams)
+    {
+        if (queryParams == null) return null;
+
+        if (queryParams.TryGetValue("asset_path", out string assetPathString))
+        {
+            char[] validSpecialChars = {'-', '_', '.', '!', '/', '(', ')'};
+            bool valid = true;
+            foreach (char c in assetPathString)
+            {
+                if (!char.IsLetterOrDigit(c) && !validSpecialChars.Contains(c))
+                {
+                    valid = false;
+                    break;
+                }
+            }
+            if (valid)
+            {
+                return assetPathString;
+            }
+            else
+            {
+                Debug.LogError($"Invalid asset_path: '{assetPathString}'");
             }
         }
 

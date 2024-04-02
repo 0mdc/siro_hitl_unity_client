@@ -9,7 +9,9 @@
         "Unity.XR.Interaction.Toolkit.Samples.DeviceSimulator",
         "Unity.XR.Interaction.Toolkit.Samples.StarterAssets",
         "Unity.XR.Interaction.Toolkit",
-        "Unity.XR.Management"
+        "Unity.XR.Management",
+        "Unity.Addressables",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
