@@ -14,7 +14,7 @@ public class TextRenderer : IKeyframeMessageConsumer
 
         public void OnGUI()
         {
-            if (texts == null)
+            if (texts == null || LoadProgressTracker.Instance.IsLoading)
             {
                 return;
             }
@@ -44,6 +44,4 @@ public class TextRenderer : IKeyframeMessageConsumer
     {
         _textRenderer.texts = message.texts?.ToArray();
     }
-
-    public void PostProcessMessage(Message message) {}
 }

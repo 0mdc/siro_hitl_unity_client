@@ -271,26 +271,8 @@ public class GfxReplayPlayer : IUpdatable
                 
                 _instanceDictionary[key].Destroy();
             }
-            _coroutines.StartCoroutine(ReleaseUnusedMemory(
-                // Wait for memory clean-up to be finished before executing KeyframePostUpdate()
-                () => {KeyframePostUpdate(keyframe);})
-            );
+            _coroutines.StartCoroutine(ReleaseUnusedMemory());
             Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
-        }
-        else
-        {
-            KeyframePostUpdate(keyframe);
-        }
-    }
-
-    void KeyframePostUpdate(KeyframeData keyframe)
-    {
-        if (keyframe.message != null)
-        {
-            foreach (var messageConsumer in _messageConsumers)
-            {
-                messageConsumer.PostProcessMessage(keyframe.message);
-            }
         }
     }
 
@@ -328,9 +310,6 @@ public class GfxReplayPlayer : IUpdatable
         }
 
         // Invoke callback.
-        if (callback != null)
-        {
-            callback.Invoke();
-        }
+        callback?.Invoke();
     }
 }
