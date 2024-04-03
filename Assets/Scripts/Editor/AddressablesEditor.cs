@@ -384,15 +384,16 @@ public static class AddressablesEditor
                 var unityAssetPath = AddressToUnityPath(fileName);
                 string guid = GetAssetGUID(unityAssetPath);
 
-                // Assign the group.
-                var addressableGroup = isLocalAsset ? localGroup : remoteGroup;
-                settings.CreateOrMoveEntry(guid, addressableGroup);
-                var entry = settings.FindAssetEntry(guid);
-                if (entry == null)
+                if (string.IsNullOrEmpty(guid) || !File.Exists(unityAssetPath))
                 {
                     Debug.LogError($"Asset {fileName} was not imported correctly into Unity. It will be excluded from the catalog.");
                     continue;
                 }
+
+                // Assign the group.
+                var addressableGroup = isLocalAsset ? localGroup : remoteGroup;
+                settings.CreateOrMoveEntry(guid, addressableGroup);
+                var entry = settings.FindAssetEntry(guid);
 
                 // Assign the address.
                 // Habitat excludes the extension, so we remove the extension here.
