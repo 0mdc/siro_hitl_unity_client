@@ -57,6 +57,7 @@ public class LoadProgressTracker
             {
                 _progress += instance.LoadingProgress;
             }
+            _progress /= _loadingInstances.Count;
         }
         return _progress;
     }
