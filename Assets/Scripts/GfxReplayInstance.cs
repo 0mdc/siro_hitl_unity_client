@@ -25,6 +25,16 @@ public class GfxReplayInstance : MonoBehaviour
     public GfxReplaySkinnedMesh skinnedMesh {get; private set;} = null;
 
     /// <summary>
+    /// Loading progress. 0 when not loaded, 1 when fully loaded.
+    /// </summary>
+    public float LoadingProgress {get; private set;} = 0.0f;
+
+    public event System.Action<GfxReplayInstance> OnLoadStarted;
+    public event System.Action<GfxReplayInstance> OnLoadSucceeded;
+    public event System.Action<GfxReplayInstance> OnLoadFailed;
+    public event System.Action<GfxReplayInstance> OnInstanceDestroyed;
+
+    /// <summary>
     /// Instantiates a 'GfxReplayInstance' object from the supplied address.
     /// If the object is not yet loaded, launches an asynchronous loading job and returns a placeholder.
     /// </summary>
@@ -35,6 +45,7 @@ public class GfxReplayInstance : MonoBehaviour
     public static GfxReplayInstance LoadAndInstantiate(string objectName, Load loadInfo, Creation creationInfo)
     {
         var newInstance = new GameObject(objectName).AddComponent<GfxReplayInstance>();
+        LoadProgressTracker.Instance.TrackInstance(newInstance);
         string address = PathUtils.HabitatPathToUnityAddress(creationInfo.filepath);
         newInstance.Load(address, loadInfo, creationInfo);
         return newInstance;
@@ -98,13 +109,14 @@ public class GfxReplayInstance : MonoBehaviour
         yield return keyExistsHandle;
         if (keyExistsHandle.Result.Count > 0)
         {
+            OnLoadStarted?.Invoke(this);
             int retryCount = 0;
             do 
             {
                 var loadHandle = Addressables.LoadAssetAsync<GameObject>(address);
                 while (!loadHandle.IsDone)
                 {
-                    // TODO: Update progress bar and skip a frame.
+                    LoadingProgress = loadHandle.PercentComplete;
                     yield return null;
                 }
                 if (loadHandle.Status == UnityEngine.ResourceManagement.AsyncOperations.AsyncOperationStatus.Succeeded)
@@ -112,6 +124,8 @@ public class GfxReplayInstance : MonoBehaviour
                     _prefab = loadHandle.Result;
 
                     // Finish object setup.
+                    LoadingProgress = 1.0f;
+                    OnLoadSucceeded?.Invoke(this);
                     PostLoad(_prefab, loadInfo, creationInfo);
                     yield break;
                 }
@@ -122,8 +136,9 @@ public class GfxReplayInstance : MonoBehaviour
                     yield return new WaitForSecondsRealtime(INCREMENTAL_WAIT_TIME_PER_RETRY * ++retryCount);
                 }
             } while (_prefab == null && retryCount <= LOAD_RETRY_COUNT);
-                        
+         
             Debug.LogError($"Unable to load '{address}' after {LOAD_RETRY_COUNT} attempts. Deactivating asset.");
+            OnLoadFailed?.Invoke(this);
             yield break;
         }
         else
@@ -175,15 +190,17 @@ public class GfxReplayInstance : MonoBehaviour
     // MonoBehaviour function that is called when the object is destroyed.
     private void OnDisable()
     {
-        // Decrement refcount.
-        if (_prefab != null)
-        {
-            Addressables.Release(_prefab);
-        }
+        OnInstanceDestroyed?.Invoke(this);
         // Stop loading.
         if (_loadingCoroutine != null)
         {
             StopCoroutine(_loadingCoroutine);
+            LoadingProgress = 0.0f;
+        }
+        // Decrement refcount.
+        if (_prefab != null)
+        {
+            Addressables.Release(_prefab);
         }
     }
 }

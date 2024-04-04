@@ -1,10 +1,17 @@
 using System.Collections;
 using UnityEngine;
 
+/// <summary>
+/// Effect that fades the scene to black, using fog, when a scene is being loaded.
+/// Works both in traditional interfaces and VR.
+/// </summary>
 public class LoadingEffectHandler : IKeyframeMessageConsumer
 {
+    private LoadProgressTracker _loadProgressTracker;
     Coroutine _sceneChangeCoroutine = null;
     CoroutineContainer _coroutines;
+    bool _changingScene = false;
+    bool _loading = false;
 
     public LoadingEffectHandler()
     {
@@ -15,9 +22,15 @@ public class LoadingEffectHandler : IKeyframeMessageConsumer
         RenderSettings.fogColor = Color.black;
         RenderSettings.fog = false;
         RenderSettings.fogDensity = 0.0f;
+
+        _loadProgressTracker = LoadProgressTracker.Instance;
+        _loadProgressTracker.OnLoadStarted += LoadStarted;
+        _loadProgressTracker.OnLoadFinished += LoadFinished;
     }
 
-    public void Update() {}
+    public void Update()
+    {
+    }
 
     public void OnSceneChangeBegin()
     {
@@ -53,23 +66,31 @@ public class LoadingEffectHandler : IKeyframeMessageConsumer
         RenderSettings.fog = false;
     }
 
-    static float EaseInCubic(float x) {
-        return x * x * x;
-    }
-
     public void ProcessMessage(Message message)
     {
         if (message.sceneChanged)
+        {
+            _changingScene = true;
+        }
+    }
+
+    void LoadStarted()
+    {
+        _loading = true;
+        if (_changingScene)
         {
             OnSceneChangeBegin();
         }
     }
 
-    public void PostProcessMessage(Message message)
+    void LoadFinished()
     {
-        if (message.sceneChanged)
-        {
-            OnSceneChangeEnd();
-        }
+        _loading = false;
+        _changingScene = false;
+        OnSceneChangeEnd();
+    }
+
+    static float EaseInCubic(float x) {
+        return x * x * x;
     }
 }

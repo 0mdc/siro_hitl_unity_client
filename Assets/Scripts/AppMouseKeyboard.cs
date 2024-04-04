@@ -32,6 +32,7 @@ public class AppMouseKeyboard : MonoBehaviour
     LoadingEffectHandler _loadingEffectHandler;
     CameraTransformHandler _cameraTransformHandler;
     TextRenderer _textRenderer;
+    LoadingScreenOverlay _loadingScreenOverlay;
 
     // IClientStateProducers
     InputTrackerMouse _inputTrackerMouse;
@@ -52,6 +53,8 @@ public class AppMouseKeyboard : MonoBehaviour
         _loadingEffectHandler = new LoadingEffectHandler();
         _cameraTransformHandler = new CameraTransformHandler(_camera);
         _textRenderer = new TextRenderer();
+        _loadingScreenOverlay = new LoadingScreenOverlay(_camera);
+        
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {
             _serverKeyframeIdHandler,
@@ -59,6 +62,7 @@ public class AppMouseKeyboard : MonoBehaviour
             _loadingEffectHandler,
             _cameraTransformHandler,
             _textRenderer,
+            _loadingScreenOverlay,
         };
 
         // Initialize IClientStateProducers.
