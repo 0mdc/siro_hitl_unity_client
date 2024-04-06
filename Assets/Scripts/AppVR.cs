@@ -51,7 +51,7 @@ public class AppVR : MonoBehaviour
     // IKeyframeMessageConsumers
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
     AvatarPositionHandler _avatarPositionHandler;
-    HighlightManager _highlightManager;
+    GuiDrawer _guiDrawer;
     LoadingEffectHandler _loadingEffectHandler;
     XRTextRenderer _textRenderer;
     NavmeshHelper _navmeshHelper;
@@ -78,7 +78,7 @@ public class AppVR : MonoBehaviour
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
         _avatarPositionHandler = new AvatarPositionHandler(_camera.gameObject, _xrOrigin);
-        _highlightManager = new HighlightManager(_appConfig, _camera);
+        _guiDrawer = new GuiDrawer(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _textRenderer = new XRTextRenderer(_textUiPlaneDistance, _textPanelRoot, _textComponent, _camera);
         _navmeshHelper = new NavmeshHelper();
@@ -86,7 +86,7 @@ public class AppVR : MonoBehaviour
         {
             _serverKeyframeIdHandler,
             _avatarPositionHandler,
-            _highlightManager,
+            _guiDrawer,
             _loadingEffectHandler,
             _textRenderer,
             _navmeshHelper,

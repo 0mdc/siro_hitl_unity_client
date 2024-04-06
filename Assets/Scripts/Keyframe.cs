@@ -105,7 +105,8 @@ public class RigUpdate
 [Serializable]
 public class Message
 {
-    public Highlight[] highlights;
+    public Circle[] circles;
+    public Line[] lines;
     public List<float> teleportAvatarBasePosition;
     public bool sceneChanged;
     // nonindexed triangle list, serialized as a flat list of floats
@@ -116,12 +117,21 @@ public class Message
 }
 
 [Serializable]
-public class Highlight
+public class Circle
 {
     // Note: short variable names and values to reduce json data size.
     public float[] t; // Position
     public float r; // Radius
-    public int b = 0; // 0 = Face-up, 1 = Billboard (face camera)
+    public float[] n; // Normal
+    public int b = 0; // 0 = Face normal, 1 = Billboard (face camera)
+    public int[] c; // Color, RGBA, 0-255
+}
+
+public class Line
+{
+    // Note: short variable names and values to reduce json data size.
+    public float[] a; // Position
+    public float[] b; // Position
     public int[] c; // Color, RGBA, 0-255
 }
 
