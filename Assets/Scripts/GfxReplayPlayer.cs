@@ -267,9 +267,10 @@ public class GfxReplayPlayer : IUpdatable
                     {
                         _skinnedMeshes.Remove(instance.rigId);
                     }
+
+                    _instanceDictionary[key].Destroy();
+                    _instanceDictionary.Remove(key);
                 }
-                
-                _instanceDictionary[key].Destroy();
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory());
             Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
