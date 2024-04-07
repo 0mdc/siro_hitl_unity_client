@@ -55,6 +55,7 @@ public class MouseInputData
     public ButtonInputData buttons = new ButtonInputData();
 
     public float[] scrollDelta = new float[2];
+    public float[] mousePositionDelta = new float[2];
     public float[] rayOrigin = new float[3];
     public float[] rayDirection = new float[3];
 }
