@@ -22,7 +22,7 @@ public class GuiDrawer : IKeyframeMessageConsumer
         _container = new GameObject("GuiDrawer");
 
         _circlePool = new LineRenderer[_config.highlightPoolSize];
-        _linePool = new LineRenderer[_config.highlightPoolSize];
+        _linePool = new LineRenderer[_config.highlightPoolSize * 2];
 
         float _arcSegmentLength = TWO_PI / _config.highlightCircleResolution;
 
