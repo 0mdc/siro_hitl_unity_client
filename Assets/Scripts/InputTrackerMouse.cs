@@ -40,11 +40,11 @@ public class InputTrackerMouse : IClientStateProducer
             {
                 _buttonHeld[mouseIndex] = true;
             }
-            if (Input.GetKeyDown(key))
+            if (Input.GetKeyUp(key))
             {
                 _buttonUp[mouseIndex] = true;
             }
-            else if (Input.GetKeyUp(key))
+            else if (Input.GetKeyDown(key))
             {
                 _buttonDown[mouseIndex] = true;
             }
