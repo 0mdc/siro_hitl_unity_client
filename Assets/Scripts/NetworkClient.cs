@@ -245,6 +245,7 @@ public class NetworkClient : IUpdatable
 
             Debug.Log("Connected to: " + url);
             _recentConnectionMessageCount = 0;
+            _firstTransmission = true;
 
             // Reset the server keyframe ID to avoid leaking ID from a previous session
             _serverKeyframeIdHandler.Reset();
@@ -406,7 +407,6 @@ public class NetworkClient : IUpdatable
                 // Update state after first successful transmission.
                 if (_firstTransmission && task.Status == TaskStatus.RanToCompletion)
                 {
-                    _clientState.connectionParamsDict = null;
                     _firstTransmission = false;
                 }
             }
