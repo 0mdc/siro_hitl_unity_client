@@ -28,7 +28,7 @@ public class AppMouseKeyboard : MonoBehaviour
 
     // IKeyframeMessageConsumers
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
-    HighlightManager _highlightManager;
+    GuiDrawer _guiDrawer;
     LoadingEffectHandler _loadingEffectHandler;
     CameraTransformHandler _cameraTransformHandler;
     TextRenderer _textRenderer;
@@ -49,7 +49,7 @@ public class AppMouseKeyboard : MonoBehaviour
     {
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
-        _highlightManager = new HighlightManager(_appConfig, _camera);
+        _guiDrawer = new GuiDrawer(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
         _cameraTransformHandler = new CameraTransformHandler(_camera);
         _textRenderer = new TextRenderer();
@@ -58,7 +58,7 @@ public class AppMouseKeyboard : MonoBehaviour
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {
             _serverKeyframeIdHandler,
-            _highlightManager,
+            _guiDrawer,
             _loadingEffectHandler,
             _cameraTransformHandler,
             _textRenderer,
