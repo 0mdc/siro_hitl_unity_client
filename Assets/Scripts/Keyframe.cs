@@ -114,6 +114,7 @@ public class Message
     public List<TextMessage> texts;
     public AbsTransform camera;
     public int serverKeyframeId;
+    public string report;
 }
 
 [Serializable]
