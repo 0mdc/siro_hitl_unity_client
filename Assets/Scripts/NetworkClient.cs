@@ -15,14 +15,37 @@ public class NetworkClientGUI : MonoBehaviour
 {
     public string TextMessage { get; set; } = "";
 
+    GUIStyle fontStyle = null;
+
     public void OnGUI()
     {
-        GUILayout.BeginArea(new Rect(16, 16, 200, 200));
-        GUILayout.BeginVertical();
-        GUI.color = Color.white;
-        GUILayout.Label(TextMessage);
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
+        if (fontStyle == null) {
+            fontStyle = new GUIStyle(GUI.skin.GetStyle("Label"))
+            {
+                alignment = TextAnchor.UpperRight,
+                fontSize = 18
+            };
+        }
+
+        // TODO: Consolidate text system and implement alignment.
+        int offsetBetweenPasses = 0;
+        List<Color> passes = new List<Color>{ Color.black, Color.white }; // Hack: Shadow for better display
+        foreach (Color color in passes) {
+            Camera main = Camera.main;
+            int resX = main.pixelWidth;
+            int baseOffset = 16 + offsetBetweenPasses;
+            int areaWidth = 400;
+            GUILayout.BeginArea(new Rect(resX - (baseOffset + areaWidth), baseOffset, areaWidth, areaWidth));
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
+            GUILayout.FlexibleSpace();
+            GUI.color = color;
+            GUILayout.Label(TextMessage, fontStyle);
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
+            GUILayout.EndArea();
+            offsetBetweenPasses += -2;
+        }
     }
 }
 
