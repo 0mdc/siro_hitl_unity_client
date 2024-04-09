@@ -14,6 +14,8 @@ public class InputTrackerMouse : IClientStateProducer
     bool[] _buttonDown;
 
     Vector2 _scrollDelta = Vector2.zero;
+    Vector2 _lastMousePosition = Vector3.zero;
+    Vector2 _mousePositionDelta = Vector2.zero;
 
     Ray _mouseRay = new Ray();
 
@@ -32,17 +34,17 @@ public class InputTrackerMouse : IClientStateProducer
         // Record all mouse actions that occurred OnEndFrame() call.
         // Note that multiple Unity frames may occur during that time.
         int mouseIndex = 0;
-        for (KeyCode key = KeyCode.Mouse0; key < KeyCode.Mouse2; key++, mouseIndex++)
+        for (KeyCode key = KeyCode.Mouse0; key <= KeyCode.Mouse2; key++, mouseIndex++)
         {
             if (Input.GetKey(key))
             {
                 _buttonHeld[mouseIndex] = true;
             }
-            if (Input.GetKeyDown(key))
+            if (Input.GetKeyUp(key))
             {
                 _buttonUp[mouseIndex] = true;
             }
-            else if (Input.GetKeyUp(key))
+            else if (Input.GetKeyDown(key))
             {
                 _buttonDown[mouseIndex] = true;
             }
@@ -53,6 +55,10 @@ public class InputTrackerMouse : IClientStateProducer
         if (Input.mousePresent)
         {
             _mouseRay = _camera.ScreenPointToRay(Input.mousePosition);
+
+            Vector2 mousePosition = new Vector2(Input.mousePosition.x, Input.mousePosition.y);
+            _mousePositionDelta += mousePosition - _lastMousePosition;
+            _lastMousePosition = mousePosition;
         }
     }
 
@@ -63,6 +69,7 @@ public class InputTrackerMouse : IClientStateProducer
         System.Array.Clear(_buttonDown, 0, _buttonDown.Length);
 
         _scrollDelta = Vector2.zero;
+        _mousePositionDelta = Vector2.zero;
     }
 
     public void UpdateClientState(ref ClientState state)
@@ -82,6 +89,9 @@ public class InputTrackerMouse : IClientStateProducer
             }
             _inputData.scrollDelta[0] = _scrollDelta.x;
             _inputData.scrollDelta[1] = _scrollDelta.y;
+
+            _inputData.mousePositionDelta[0] = _mousePositionDelta.x;
+            _inputData.mousePositionDelta[1] = -_mousePositionDelta.y;
 
             _inputData.rayOrigin = CoordinateSystem.ToHabitatVector(_mouseRay.origin).ToArray();
             _inputData.rayDirection = CoordinateSystem.ToHabitatVector(_mouseRay.direction).ToArray();
