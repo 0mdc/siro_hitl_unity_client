@@ -11,6 +11,7 @@ public class ClientState
     public MouseInputData mouse;
     public Dictionary<string, string> connectionParamsDict;
     public int? recentServerKeyframeId = null;
+    public bool isLoading = false;
 }
 
 [Serializable]
@@ -58,4 +59,11 @@ public class MouseInputData
     public float[] mousePositionDelta = new float[2];
     public float[] rayOrigin = new float[3];
     public float[] rayDirection = new float[3];
+}
+
+
+public class LoadTelemetry
+{
+    int totalSuccess = 0;
+    int totalFailure = 0;
 }

@@ -91,6 +91,10 @@ public class NetworkClient : IUpdatable
     NetworkClientGUI _textRenderer;
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
 
+    // We keep on trying to reconnect until a successful session has started.
+    // After this, we stop trying to reconnect to avoid using server resources needlessly when AFK.
+    bool _tryReconnecting = true;
+
     // Used to handle data that is only meant to be sent during the first transmission.
     private bool _firstTransmission = true;
 
@@ -184,7 +188,7 @@ public class NetworkClient : IUpdatable
     {
         while (true)
         {
-            if (mainWebSocket == null)
+            if (mainWebSocket == null && _tryReconnecting)
             {
                 if (_delayReconnect > 0.0f)
                 {
@@ -206,6 +210,12 @@ public class NetworkClient : IUpdatable
                 if (currentServerIndex >= _serverURLs.Count)
                 {
                     currentServerIndex = 0; // Reset to try again from the beginning.
+                }
+
+                if (!_tryReconnecting)
+                {
+                    yield return new WaitForSeconds(1);
+                    continue;
                 }
 
                 string url = _serverURLs[currentServerIndex];
@@ -245,6 +255,11 @@ public class NetworkClient : IUpdatable
                         _disconnectReason = "Unable to reach server!";
                     }
                 }
+            }
+            else if (mainWebSocket == null && !_tryReconnecting)
+            {
+                SetDisconnectStatus("Session ended.");
+                yield break;
             }
             else
             {
@@ -316,6 +331,9 @@ public class NetworkClient : IUpdatable
             if (_recentConnectionMessageCount == 0) {
                 // Delete all old instances upon receiving the first keyframe.
                 _player.DeleteAllInstancesFromKeyframes();
+
+                // We stop trying to reconnect once a successful two-way connection has been established.
+                _tryReconnecting = false;
             }
 
             string message = System.Text.Encoding.UTF8.GetString(bytes);
@@ -388,6 +406,7 @@ public class NetworkClient : IUpdatable
         {
             _clientState.recentServerKeyframeId = _serverKeyframeIdHandler.recentServerKeyframeId;
         }
+        _clientState.isLoading = LoadProgressTracker.Instance.IsLoading;
     }
 
     void SetDisconnectStatus(string status)
