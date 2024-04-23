@@ -39,6 +39,9 @@ public class AppMouseKeyboard : MonoBehaviour
     InputTrackerMouse _inputTrackerMouse;
     InputTrackerKeyboard _inputTrackerKeyboard;
 
+    // Producer/Consumers
+    UIElementDrawer _uiElementDrawer;
+
     // Application state
     ConfigLoader _configLoader;
     GfxReplayPlayer _gfxReplayPlayer;
@@ -48,6 +51,9 @@ public class AppMouseKeyboard : MonoBehaviour
 
     protected void Awake()
     {
+        // Initialize Producer/Consumers.
+        _uiElementDrawer = new UIElementDrawer(_camera);
+
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
         _guiDrawer = new GuiDrawer(_appConfig, _camera);
@@ -66,6 +72,7 @@ public class AppMouseKeyboard : MonoBehaviour
             _textRenderer,
             _loadingScreenOverlay,
             _reportHandler,
+            _uiElementDrawer,
         };
 
         // Initialize IClientStateProducers.
@@ -75,6 +82,7 @@ public class AppMouseKeyboard : MonoBehaviour
         {
             _inputTrackerMouse,
             _inputTrackerKeyboard,
+            _uiElementDrawer,
         };
 
         // Initialize application state.

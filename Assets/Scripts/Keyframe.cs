@@ -114,7 +114,8 @@ public class Message
     public List<TextMessage> texts;
     public AbsTransform camera;
     public int serverKeyframeId;
-    public string report;
+    public string report; // TODO: Unused.
+    public Dialog dialog;
 }
 
 [Serializable]
@@ -141,4 +142,20 @@ public class TextMessage
 {
     public string text;
     public List<float> position;
+}
+
+[Serializable]
+public class Dialog
+{
+    public string title;
+    public string text;
+    public Button[] buttons;
+}
+
+[Serializable]
+public class Button
+{
+    public string id;
+    public string text;
+    public bool enabled;
 }

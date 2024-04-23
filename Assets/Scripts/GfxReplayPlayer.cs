@@ -227,7 +227,7 @@ public class GfxReplayPlayer : IUpdatable
 
                 _instanceDictionary[creationItem.instanceKey] = instance;
             }
-            Debug.Log($"Processed {keyframe.creations.Length} creations!");
+            //Debug.Log($"Processed {keyframe.creations.Length} creations!");
         }
 
         if (keyframe.rigCreations != null)
@@ -273,7 +273,7 @@ public class GfxReplayPlayer : IUpdatable
                 }
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory());
-            Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
+            //Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
         }
     }
 
@@ -284,7 +284,7 @@ public class GfxReplayPlayer : IUpdatable
             kvp.Value.Destroy();
         }
         _coroutines.StartCoroutine(ReleaseUnusedMemory());
-        Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
+        //Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
         _instanceDictionary.Clear();
     }
 

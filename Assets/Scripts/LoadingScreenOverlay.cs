@@ -45,7 +45,7 @@ public class LoadingScreenOverlay : IKeyframeMessageConsumer
 
             GUI.color = Color.white;
             GUILayout.Window(
-                7,
+                7, // TODO
                 new Rect(progressBarXOffset,progressBarYOffset,progressBarWidth,progressBarHeight),
                 WindowUpdate,
                 $"Loading ({_progress:F2})");
