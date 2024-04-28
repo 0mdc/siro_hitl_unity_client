@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 
@@ -13,11 +14,16 @@ public class GfxReplayInstance : MonoBehaviour
     private const float INCREMENTAL_WAIT_TIME_PER_RETRY = 1.0f;
     private GameObject _prefab;
     private Coroutine _loadingCoroutine;
+    private bool _visible = true;
 
     /// <summary>
     /// Gfx-replay rigId associated with this instance.
     /// </summary>
     public int rigId {get; private set;} = Constants.ID_UNDEFINED;
+
+    public int objectId {get; private set;} = Constants.ID_UNDEFINED;
+
+    public int semanticId {get; private set;} = Constants.ID_UNDEFINED;
 
     /// <summary>
     /// Gfx-replay skinned mesh associated with this instance.
@@ -42,12 +48,16 @@ public class GfxReplayInstance : MonoBehaviour
     /// <param name="loadInfo">Gfx-replay load structure. See Keyframe.cs.</param>
     /// <param name="creationInfo">Gfx-replay creation structure. See Keyframe.cs.</param>
     /// <returns>Object instance.</returns>
-    public static GfxReplayInstance LoadAndInstantiate(string objectName, Load loadInfo, Creation creationInfo)
+    public static GfxReplayInstance LoadAndInstantiate(string objectName, Load loadInfo, Creation creation)
     {
         var newInstance = new GameObject(objectName).AddComponent<GfxReplayInstance>();
         LoadProgressTracker.Instance.TrackInstance(newInstance);
-        string address = PathUtils.HabitatPathToUnityAddress(creationInfo.filepath);
-        newInstance.Load(address, loadInfo, creationInfo);
+        string address = PathUtils.HabitatPathToUnityAddress(creation.info.filepath);
+        newInstance.Load(address, loadInfo, creation);
+        newInstance.rigId = creation.info.rigId;
+        newInstance.objectId = creation.objectId;
+        newInstance.semanticId = creation.semanticId;
+        print($"{newInstance.objectId}: {creation.info.filepath}");
         return newInstance;
     }
 
@@ -82,6 +92,21 @@ public class GfxReplayInstance : MonoBehaviour
         Destroy(this.gameObject);
     }
 
+    public void SetVisibility(bool visible)
+    {
+        _visible = visible;
+        ApplyVisibility();
+    }
+
+    private void ApplyVisibility()
+    {
+        var renderers = transform.GetComponentsInChildren<Renderer>();
+        foreach (var renderer in renderers)
+        {
+            renderer.enabled = _visible;
+        }
+    }
+
     // TODO: Optimization: Skip the offset node. Instead, bake the transform into the instance root node.
     GameObject CreateOffsetNode(Frame frame)
     {
@@ -90,15 +115,15 @@ public class GfxReplayInstance : MonoBehaviour
         return offsetNode;
     }
 
-    void Load(string address, Load loadInfo, Creation creationInfo)
+    void Load(string address, Load loadInfo, Creation creation)
     {
-        _loadingCoroutine = StartCoroutine(LoadAsync(address, loadInfo, creationInfo));
+        _loadingCoroutine = StartCoroutine(LoadAsync(address, loadInfo, creation));
     }
 
-    IEnumerator LoadAsync(string address, Load loadInfo, Creation creationInfo)
+    IEnumerator LoadAsync(string address, Load loadInfo, Creation creation)
     {
         // Create skinned mesh placeholder.
-        rigId = creationInfo.rigId;
+        rigId = creation.info.rigId;
         if (rigId != Constants.ID_UNDEFINED)
         {
             skinnedMesh = new GfxReplaySkinnedMesh(this);
@@ -126,7 +151,7 @@ public class GfxReplayInstance : MonoBehaviour
                     // Finish object setup.
                     LoadingProgress = 1.0f;
                     OnLoadSucceeded?.Invoke(this);
-                    PostLoad(_prefab, loadInfo, creationInfo);
+                    PostLoad(_prefab, loadInfo, creation);
                     yield break;
                 }
                 else
@@ -144,17 +169,24 @@ public class GfxReplayInstance : MonoBehaviour
         else
         {
             Debug.LogError($"Addressable key does not exist: '{address}'.");
+
+            if (address.Contains("data/fpss/objects/"))
+            {
+                Debug.LogWarning($"Attempting to load {address} from objects_ovmm.");
+                address = System.IO.Path.Join("data/objects_ovmm/train_val/hssd/assets/objects/", address.Split('/').Last());
+                yield return LoadAsync(address, loadInfo, creation);
+            }
             yield break;
         }
     }
 
-    void PostLoad(GameObject prefab, Load loadInfo, Creation creationInfo)
+    void PostLoad(GameObject prefab, Load loadInfo, Creation creation)
     {
         // Create offset node, which handles 'load.frame' and 'creation.scale'.
         GameObject offsetNode = CreateOffsetNode(loadInfo.frame);
-        if (creationInfo.scale != null)
+        if (creation.info.scale != null)
         {
-            offsetNode.transform.localScale = creationInfo.scale.ToVector3();
+            offsetNode.transform.localScale = creation.info.scale.ToVector3();
         }
         offsetNode.transform.SetParent(transform, worldPositionStays: false);
 
@@ -185,6 +217,9 @@ public class GfxReplayInstance : MonoBehaviour
                 }
             }
         #endif
+
+        // (Re)apply visibility after loading.
+        ApplyVisibility();
     }
 
     // MonoBehaviour function that is called when the object is destroyed.

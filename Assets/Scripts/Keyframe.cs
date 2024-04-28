@@ -62,6 +62,14 @@ public class CreationItem
 [Serializable]
 public class Creation
 {
+    public CreationInfo info;
+    public int objectId;
+    public int semanticId;
+}
+
+[Serializable]
+public class CreationInfo
+{
     public string filepath;
     public float[] scale;
     public int rigId;
@@ -116,6 +124,7 @@ public class Message
     public int serverKeyframeId;
     public string report; // TODO: Unused.
     public Dialog dialog;
+    public Dictionary<int, bool> visibility;
 }
 
 [Serializable]

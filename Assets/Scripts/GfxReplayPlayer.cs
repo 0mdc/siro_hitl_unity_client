@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Assertions;
 
@@ -20,6 +21,7 @@ public class GfxReplayPlayer : IUpdatable
     const bool USE_KEYFRAME_INTERPOLATION = true;
 
     private Dictionary<int, GfxReplayInstance> _instanceDictionary = new();
+    private Dictionary<int, int> _objectIdToInstanceKey = new();
     private Dictionary<string, Load> _loadDictionary = new();
     private Dictionary<int, MovementData> _movementData = new();
     Dictionary<int, GfxReplayInstance> _skinnedMeshes = new();
@@ -190,6 +192,30 @@ public class GfxReplayPlayer : IUpdatable
             {
                 messageConsumer.ProcessMessage(keyframe.message);
             }
+
+            if (keyframe.message.visibility != null)
+            {
+                foreach (var pair in keyframe.message.visibility)
+                {
+                    int objectId = pair.Key;
+                    bool visible = pair.Value;
+                    if (_objectIdToInstanceKey.ContainsKey(objectId))
+                    {
+                        if (_instanceDictionary.ContainsKey(_objectIdToInstanceKey[objectId]))
+                        {
+                            _instanceDictionary[_objectIdToInstanceKey[objectId]].SetVisibility(visible);
+                        }
+                        else
+                        {
+                            Debug.Log($"Instance with object ID {pair.Key} not found.");
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log($"Object ID {pair.Key} not found.");
+                    }
+                }
+            }
         }
 
         // Handle Loads
@@ -206,7 +232,7 @@ public class GfxReplayPlayer : IUpdatable
         {
             foreach (var creationItem in keyframe.creations)
             {
-                var source = creationItem.creation.filepath;
+                var source = creationItem.creation.info.filepath;
                 if (!_loadDictionary.TryGetValue(source, out Load load))
                 {
                     Debug.LogError("Unable to find loads entry for " + source);
@@ -219,10 +245,16 @@ public class GfxReplayPlayer : IUpdatable
                     creationItem.creation
                 );
 
-                int rigId = creationItem.creation.rigId;
+                int rigId = instance.rigId;
                 if (rigId != Constants.ID_UNDEFINED)
                 {
                     _skinnedMeshes[rigId] = instance;
+                }
+
+                int objectId = instance.objectId;
+                if (objectId != Constants.ID_UNDEFINED)
+                {
+                    _objectIdToInstanceKey[objectId] = creationItem.instanceKey;
                 }
 
                 _instanceDictionary[creationItem.instanceKey] = instance;
@@ -268,6 +300,11 @@ public class GfxReplayPlayer : IUpdatable
                         _skinnedMeshes.Remove(instance.rigId);
                     }
 
+                    if (_objectIdToInstanceKey.ContainsKey(instance.objectId))
+                    {
+                        _objectIdToInstanceKey.Remove(instance.objectId);
+                    }
+
                     _instanceDictionary[key].Destroy();
                     _instanceDictionary.Remove(key);
                 }
@@ -286,6 +323,7 @@ public class GfxReplayPlayer : IUpdatable
         _coroutines.StartCoroutine(ReleaseUnusedMemory());
         //Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
         _instanceDictionary.Clear();
+        _objectIdToInstanceKey.Clear();
     }
 
     /// <summary>
