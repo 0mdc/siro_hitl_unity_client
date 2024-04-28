@@ -24,7 +24,7 @@ public class TextRenderer : IKeyframeMessageConsumer
                     fontSize = 18
                 };
             }
-            if (texts == null || LoadProgressTracker.Instance.IsLoading)
+            if (texts == null || LoadProgressTracker.Instance.IsApplicationPaused)
             {
                 return;
             }

@@ -44,17 +44,23 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
             // TODO: Size
             int width = _camera.pixelWidth;
             int height = _camera.pixelHeight;
-            int windowWidth = width / 2;
-            int windowHeight = width / 4;
-            int windowXOffset = (width / 2) - (windowWidth / 2);
-            int windowYOffset = (height / 2) - (windowHeight / 2);
+            int windowWidth = width / 3;
+            int windowHeight = width / 5;
+            int windowXOffset = windowWidth - (windowWidth / 2);
+            int windowYOffset = windowHeight - (windowHeight / 2);
 
+            GUILayout.BeginVertical();
+            GUILayout.BeginHorizontal();
             GUI.color = Color.white;
             GUILayout.Window(
                 9, // TODO
-                new Rect(windowXOffset,windowYOffset,windowWidth,windowHeight),
+                new Rect(16, 16, 0, 0),
                 WindowUpdate,
-                _dialog.title);
+                _dialog.title,
+                GUILayout.Width(256)
+            );
+            GUILayout.EndHorizontal();
+            GUILayout.EndVertical();
         }
 
         void WindowUpdate(int windowId)
