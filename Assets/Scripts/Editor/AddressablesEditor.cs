@@ -328,7 +328,7 @@ public static class AddressablesEditor
             bags.IncludeLabelsInCatalog = true; // Disable labels - we only use them to create bundles.
             bags.UseAssetBundleCache = true; // Enables local cache.
             bags.UseAssetBundleCrc = true; // Enable loading assets from cache.
-            bags.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenSpaceIsNeededInCache;
+            bags.AssetBundledCacheClearBehavior = BundledAssetGroupSchema.CacheClearBehavior.ClearWhenWhenNewVersionLoaded;
             // This makes the system export the bundles and catalog at 'ServerData/[Platform]':
             var idInfo = settings.profileSettings.GetProfileDataByName("Remote.BuildPath");
             remoteGroup.GetSchema<BundledAssetGroupSchema>().BuildPath.SetVariableById(settings, idInfo.Id);
