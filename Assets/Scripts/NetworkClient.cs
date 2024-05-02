@@ -258,7 +258,9 @@ public class NetworkClient : IUpdatable
             }
             else if (mainWebSocket == null && !_tryReconnecting)
             {
+                // If disconnected after the session has started, do not reconnect.
                 SetDisconnectStatus("Session ended.");
+                _player.DeleteAllInstancesFromKeyframes();
                 yield break;
             }
             else
