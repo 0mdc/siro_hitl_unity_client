@@ -25,7 +25,8 @@ public class KeyframeData
     public Load[] loads;
     public RigCreation[] rigCreations;
     public CreationItem[] creations;
-    public StateUpdate[] stateUpdates;
+    public InstanceMetadataItem[] metadata;
+    public StateUpdateItem[] stateUpdates;
     public RigUpdate[] rigUpdates;
     public int[] deletions;
     public Message message;
@@ -62,31 +63,36 @@ public class CreationItem
 [Serializable]
 public class Creation
 {
-    public CreationInfo info;
-    public int objectId;
-    public int semanticId;
-}
-
-[Serializable]
-public class CreationInfo
-{
     public string filepath;
     public float[] scale;
     public int rigId;
 }
 
 [Serializable]
-public class StateUpdate
+public class InstanceMetadataItem
 {
     public int instanceKey;
-    public StateData state;
+    public InstanceMetadata metadata;
+}
 
-    [Serializable]
-    public class StateData
-    {
-        public AbsTransform absTransform;
-        public int semanticId;
-    }
+[Serializable]
+public class InstanceMetadata
+{
+    public int objectId;
+    public int semanticId;
+}
+
+[Serializable]
+public class StateUpdateItem
+{
+    public int instanceKey;
+    public StateUpdate state;
+}
+
+[Serializable]
+public class StateUpdate
+{
+    public AbsTransform absTransform;
 }
 
 [Serializable]
@@ -124,7 +130,8 @@ public class Message
     public int serverKeyframeId;
     public string report; // TODO: Unused.
     public Dialog dialog;
-    public Dictionary<int, bool> visibility;
+    public Dictionary<int, ObjectProperties> objects = new();
+    public Dictionary<int, ViewportProperties> viewports = new();
 }
 
 [Serializable]
@@ -167,4 +174,28 @@ public class Button
     public string id;
     public string text;
     public bool enabled;
+}
+
+[Serializable]
+public class Textbox
+{
+    public string id;
+    public bool enabled;
+}
+
+[Serializable]
+public class ObjectProperties
+{
+    public bool? visible;
+    public int? layer;
+}
+
+[Serializable]
+public class ViewportProperties
+{
+    public bool? enabled;
+    public int[] layers;
+    public float[] rect;
+    public AbsTransform camera;
+    public string text;
 }

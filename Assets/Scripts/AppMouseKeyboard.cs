@@ -34,6 +34,7 @@ public class AppMouseKeyboard : MonoBehaviour
     TextRenderer _textRenderer;
     LoadingScreenOverlay _loadingScreenOverlay;
     ReportHandler _reportHandler;
+    ViewportHandler _viewportHandler;
 
     // IClientStateProducers
     InputTrackerMouse _inputTrackerMouse;
@@ -62,6 +63,7 @@ public class AppMouseKeyboard : MonoBehaviour
         _textRenderer = new TextRenderer();
         _loadingScreenOverlay = new LoadingScreenOverlay(_camera);
         _reportHandler = new ReportHandler();
+        _viewportHandler = new ViewportHandler(_camera);
         
         var keyframeMessageConsumers = new IKeyframeMessageConsumer[]
         {
@@ -72,6 +74,8 @@ public class AppMouseKeyboard : MonoBehaviour
             _textRenderer,
             _loadingScreenOverlay,
             _reportHandler,
+            _viewportHandler,
+
             _uiElementDrawer,
         };
 
@@ -82,6 +86,7 @@ public class AppMouseKeyboard : MonoBehaviour
         {
             _inputTrackerMouse,
             _inputTrackerKeyboard,
+            
             _uiElementDrawer,
         };
 

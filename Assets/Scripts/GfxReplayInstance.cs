@@ -15,6 +15,7 @@ public class GfxReplayInstance : MonoBehaviour
     private GameObject _prefab;
     private Coroutine _loadingCoroutine;
     private bool _visible = true;
+    private int _layer = 0;
 
     /// <summary>
     /// Gfx-replay rigId associated with this instance.
@@ -52,12 +53,9 @@ public class GfxReplayInstance : MonoBehaviour
     {
         var newInstance = new GameObject(objectName).AddComponent<GfxReplayInstance>();
         LoadProgressTracker.Instance.TrackInstance(newInstance);
-        string address = PathUtils.HabitatPathToUnityAddress(creation.info.filepath);
+        string address = PathUtils.HabitatPathToUnityAddress(creation.filepath);
         newInstance.Load(address, loadInfo, creation);
-        newInstance.rigId = creation.info.rigId;
-        newInstance.objectId = creation.objectId;
-        newInstance.semanticId = creation.semanticId;
-        print($"{newInstance.objectId}: {creation.info.filepath}");
+        newInstance.rigId = creation.rigId;
         return newInstance;
     }
 
@@ -84,6 +82,15 @@ public class GfxReplayInstance : MonoBehaviour
     }
 
     /// <summary>
+    /// Process a 'Metadata' keyframe.
+    /// </summary>
+    public void ProcessMetadata(InstanceMetadata metadata)
+    {
+        objectId = metadata.objectId;
+        semanticId = metadata.semanticId;
+    }
+
+    /// <summary>
     /// Destroy the GameObject as well as all of its children.
     /// </summary>
     public void Destroy()
@@ -95,15 +102,22 @@ public class GfxReplayInstance : MonoBehaviour
     public void SetVisibility(bool visible)
     {
         _visible = visible;
-        ApplyVisibility();
+        ApplyObjectProperties();
     }
 
-    private void ApplyVisibility()
+    public void SetLayer(int layer)
+    {
+        _layer = layer;
+        ApplyObjectProperties();
+    }
+
+    private void ApplyObjectProperties()
     {
         var renderers = transform.GetComponentsInChildren<Renderer>();
         foreach (var renderer in renderers)
         {
             renderer.enabled = _visible;
+            renderer.gameObject.layer = _layer;
         }
     }
 
@@ -123,7 +137,7 @@ public class GfxReplayInstance : MonoBehaviour
     IEnumerator LoadAsync(string address, Load loadInfo, Creation creation)
     {
         // Create skinned mesh placeholder.
-        rigId = creation.info.rigId;
+        rigId = creation.rigId;
         if (rigId != Constants.ID_UNDEFINED)
         {
             skinnedMesh = new GfxReplaySkinnedMesh(this);
@@ -184,9 +198,9 @@ public class GfxReplayInstance : MonoBehaviour
     {
         // Create offset node, which handles 'load.frame' and 'creation.scale'.
         GameObject offsetNode = CreateOffsetNode(loadInfo.frame);
-        if (creation.info.scale != null)
+        if (creation.scale != null)
         {
-            offsetNode.transform.localScale = creation.info.scale.ToVector3();
+            offsetNode.transform.localScale = creation.scale.ToVector3();
         }
         offsetNode.transform.SetParent(transform, worldPositionStays: false);
 
@@ -218,8 +232,8 @@ public class GfxReplayInstance : MonoBehaviour
             }
         #endif
 
-        // (Re)apply visibility after loading.
-        ApplyVisibility();
+        // (Re)apply object properties after loading.
+        ApplyObjectProperties();
     }
 
     // MonoBehaviour function that is called when the object is destroyed.

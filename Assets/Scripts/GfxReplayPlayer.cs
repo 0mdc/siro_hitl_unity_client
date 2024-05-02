@@ -192,30 +192,6 @@ public class GfxReplayPlayer : IUpdatable
             {
                 messageConsumer.ProcessMessage(keyframe.message);
             }
-
-            if (keyframe.message.visibility != null)
-            {
-                foreach (var pair in keyframe.message.visibility)
-                {
-                    int objectId = pair.Key;
-                    bool visible = pair.Value;
-                    if (_objectIdToInstanceKey.ContainsKey(objectId))
-                    {
-                        if (_instanceDictionary.ContainsKey(_objectIdToInstanceKey[objectId]))
-                        {
-                            _instanceDictionary[_objectIdToInstanceKey[objectId]].SetVisibility(visible);
-                        }
-                        else
-                        {
-                            Debug.Log($"Instance with object ID {pair.Key} not found.");
-                        }
-                    }
-                    else
-                    {
-                        Debug.Log($"Object ID {pair.Key} not found.");
-                    }
-                }
-            }
         }
 
         // Handle Loads
@@ -232,7 +208,7 @@ public class GfxReplayPlayer : IUpdatable
         {
             foreach (var creationItem in keyframe.creations)
             {
-                var source = creationItem.creation.info.filepath;
+                var source = creationItem.creation.filepath;
                 if (!_loadDictionary.TryGetValue(source, out Load load))
                 {
                     Debug.LogError("Unable to find loads entry for " + source);
@@ -251,15 +227,23 @@ public class GfxReplayPlayer : IUpdatable
                     _skinnedMeshes[rigId] = instance;
                 }
 
-                int objectId = instance.objectId;
-                if (objectId != Constants.ID_UNDEFINED)
-                {
-                    _objectIdToInstanceKey[objectId] = creationItem.instanceKey;
-                }
-
                 _instanceDictionary[creationItem.instanceKey] = instance;
             }
             //Debug.Log($"Processed {keyframe.creations.Length} creations!");
+        }
+
+        if (keyframe.metadata != null)
+        {
+            foreach (var metadata in keyframe.metadata)
+            {
+                int key = metadata.instanceKey;
+                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance instance))
+                {
+                    instance.ProcessMetadata(metadata.metadata);
+                    _objectIdToInstanceKey[instance.objectId] = key;
+                    Debug.Log($"{instance.objectId} -> {key}");
+                }
+            }
         }
 
         if (keyframe.rigCreations != null)
@@ -311,6 +295,48 @@ public class GfxReplayPlayer : IUpdatable
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory());
             //Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
+        }
+
+        // Process object properties.
+        if (keyframe.message != null)
+        {
+            foreach (var pair in keyframe.message.objects)
+            {
+                int objectId = pair.Key;
+                ObjectProperties properties = pair.Value;
+                if (_objectIdToInstanceKey.TryGetValue(objectId, out int instanceKey))
+                {
+                    if (_instanceDictionary.TryGetValue(instanceKey, out GfxReplayInstance instance))
+                    {
+                        if (properties.visible.HasValue)
+                        {
+                            instance.SetVisibility(properties.visible.Value);
+                        }
+                        if (properties.layer.HasValue)
+                        {
+                            // Convention:
+                            // -1: Default layer (0).
+                            // 0-7: Layers 8-15.
+                            int inputLayer = properties.layer.Value;
+                            int unityLayer = 0;
+                            if (inputLayer > -1 && inputLayer < ViewportHandler.LAYER_COUNT)
+                            {
+                                unityLayer = inputLayer + ViewportHandler.FIRST_LAYER_INDEX;
+                            }
+                            instance.SetLayer(unityLayer);
+                        }                        
+                    }
+                    else
+                    {
+                        Debug.Log($"Instance with object ID {pair.Key} not found.");
+                    }
+                }
+                else
+                {
+                    // Object ID is not mapped to a gfx-replay instance.
+                    // Typically, this is because the object is not a renderable object (e.g. human bone node).
+                }
+            }
         }
     }
 
