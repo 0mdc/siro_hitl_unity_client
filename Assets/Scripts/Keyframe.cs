@@ -166,6 +166,7 @@ public class Dialog
     public string title;
     public string text;
     public Button[] buttons;
+    public Textbox textbox;
 }
 
 [Serializable]
@@ -180,6 +181,7 @@ public class Button
 public class Textbox
 {
     public string id;
+    public string text;
     public bool enabled;
 }
 

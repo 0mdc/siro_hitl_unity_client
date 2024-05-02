@@ -241,7 +241,6 @@ public class GfxReplayPlayer : IUpdatable
                 {
                     instance.ProcessMetadata(metadata.metadata);
                     _objectIdToInstanceKey[instance.objectId] = key;
-                    Debug.Log($"{instance.objectId} -> {key}");
                 }
             }
         }

@@ -67,6 +67,9 @@ public class UIElements
 {
     // Collection of UI buttons that were pressed since the last client message.
     public List<string> buttonsPressed = new List<string>();
+
+    // Collection of textboxes and their latest content since the last client message.
+    public Dictionary<string, string> textboxes;
 }
 
 public class LoadTelemetry
