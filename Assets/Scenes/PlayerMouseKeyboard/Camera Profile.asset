@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d7fd9488000d3734a9e00ee676215985, type: 3}
+  m_Name: Camera Profile
+  m_EditorClassIdentifier: 
+  components:
+  - {fileID: 2264512853449100066}
+--- !u!114 &2264512853449100066
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a1a0912ccc82aa49bc9c20a5f3409b2, type: 3}
+  m_Name: AmplifyOcclusionVolume
+  m_EditorClassIdentifier: 
+  active: 1
+  ApplyMethod:
+    m_OverrideState: 1
+    m_Value: 0
+  SampleCount:
+    m_OverrideState: 1
+    m_Value: 1
+  RampTexture:
+    m_OverrideState: 0
+    m_Value: {fileID: 0}
+  Intensity:
+    m_OverrideState: 1
+    m_Value: 1
+  Tint:
+    m_OverrideState: 0
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+  Radius:
+    m_OverrideState: 1
+    m_Value: 1.3
+  PowerExponent:
+    m_OverrideState: 1
+    m_Value: 0.5
+  Bias:
+    m_OverrideState: 0
+    m_Value: 0.05
+  Thickness:
+    m_OverrideState: 1
+    m_Value: 0.5
+  Downsample:
+    m_OverrideState: 1
+    m_Value: 1
+  CacheAware:
+    m_OverrideState: 0
+    m_Value: 0
+  FadeEnabled:
+    m_OverrideState: 0
+    m_Value: 0
+  FadeStart:
+    m_OverrideState: 0
+    m_Value: 100
+  FadeLength:
+    m_OverrideState: 0
+    m_Value: 50
+  FadeToIntensity:
+    m_OverrideState: 0
+    m_Value: 0
+  FadeToTint:
+    m_OverrideState: 0
+    m_Value: {r: 0, g: 0, b: 0, a: 1}
+  FadeToRadius:
+    m_OverrideState: 0
+    m_Value: 2
+  FadeToPowerExponent:
+    m_OverrideState: 0
+    m_Value: 1
+  FadeToThickness:
+    m_OverrideState: 0
+    m_Value: 1
+  BlurEnabled:
+    m_OverrideState: 1
+    m_Value: 1
+  BlurRadius:
+    m_OverrideState: 1
+    m_Value: 2
+  BlurPasses:
+    m_OverrideState: 1
+    m_Value: 1
+  BlurSharpness:
+    m_OverrideState: 1
+    m_Value: 2.6
