@@ -15,6 +15,9 @@ public class LoadProgressTracker
     uint _successCount = 0;
     uint _failureCount = 0;
 
+    // TODO: Refactor.
+    public bool _modalDialogueShown = false;
+
     /// <summary>
     /// Get the LoadProgressTracker singleton.
     /// </summary>
@@ -61,6 +64,15 @@ public class LoadProgressTracker
         }
         return _progress;
     }
+
+    /// <summary>
+    /// Whether the client is paused. True if loading or modal dialogue shown.
+    /// TODO: Either move out or rename this class.
+    /// </summary>
+    public bool IsApplicationPaused { get
+    {
+        return IsLoading || _modalDialogueShown;
+    }}
 
     /// <summary>
     /// Whether at least one asset is being loaded.

@@ -115,6 +115,7 @@ public class Message
     public AbsTransform camera;
     public int serverKeyframeId;
     public Dictionary<int, ViewportProperties> viewports;
+    public Dialog dialog;
 }
 
 [Serializable]
@@ -149,4 +150,19 @@ public class ViewportProperties
     public bool? enabled;
     public float[] rect;
     public AbsTransform camera;
+}
+
+public class Dialog
+{
+    public string title;
+    public string text;
+    public Button[] buttons;
+}
+
+[Serializable]
+public class Button
+{
+    public string id;
+    public string text;
+    public bool enabled;
 }

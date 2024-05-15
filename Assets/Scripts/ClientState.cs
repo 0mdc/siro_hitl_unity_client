@@ -12,6 +12,7 @@ public class ClientState
     public Dictionary<string, string> connectionParamsDict;
     public int? recentServerKeyframeId = null;
     public bool isLoading;
+    public UIElements ui;
 }
 
 [Serializable]
@@ -59,4 +60,11 @@ public class MouseInputData
     public float[] mousePositionDelta = new float[2];
     public float[] rayOrigin = new float[3];
     public float[] rayDirection = new float[3];
+}
+
+[Serializable]
+public class UIElements
+{
+    // Collection of UI buttons that were pressed since the last client message.
+    public List<string> buttonsPressed = new List<string>();
 }

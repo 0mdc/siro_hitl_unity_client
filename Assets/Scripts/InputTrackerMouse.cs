@@ -31,8 +31,8 @@ public class InputTrackerMouse : IClientStateProducer
 
     public void Update()
     {
-        // Don't update if loading.
-        if (LoadProgressTracker.Instance.IsLoading)
+        // Don't update if paused.
+        if (LoadProgressTracker.Instance.IsApplicationPaused)
         {
             return;
         }

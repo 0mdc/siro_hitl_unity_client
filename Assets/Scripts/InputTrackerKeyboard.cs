@@ -120,6 +120,12 @@ public class InputTrackerKeyboard : IClientStateProducer
 
     public InputTrackerKeyboard()
     {
+        // Don't update if paused.
+        if (LoadProgressTracker.Instance.IsApplicationPaused)
+        {
+            return;
+        }
+
         // Bake the dict into an array for faster lookups.
         _keyMap = new int[KEY_COUNT];
         foreach (var kv in KEY_MAP)
