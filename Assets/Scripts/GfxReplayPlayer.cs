@@ -227,7 +227,6 @@ public class GfxReplayPlayer : IUpdatable
 
                 _instanceDictionary[creationItem.instanceKey] = instance;
             }
-            Debug.Log($"Processed {keyframe.creations.Length} creations!");
         }
 
         if (keyframe.rigCreations != null)
@@ -273,7 +272,6 @@ public class GfxReplayPlayer : IUpdatable
                 }
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory());
-            Debug.Log($"Processed {keyframe.deletions.Length} deletions!");
         }
     }
 

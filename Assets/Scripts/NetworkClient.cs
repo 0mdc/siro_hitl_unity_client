@@ -313,8 +313,7 @@ public class NetworkClient : IUpdatable
     {
         while (true)
         {
-            // Wait for a second
-            float duration = 2.0F;
+            float duration = 20.0F;
             yield return new WaitForSeconds(duration);
 
             float fps = frameCount / duration;
@@ -331,7 +330,7 @@ public class NetworkClient : IUpdatable
             }
             else
             {
-                Debug.Log($"disconnected, FPS: {fps.ToString("F1")}");
+                Debug.Log($"Disconnected, FPS: {fps.ToString("F1")}");
             }
 
             // Reset the count
