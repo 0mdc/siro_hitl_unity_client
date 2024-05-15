@@ -80,7 +80,7 @@ public class ViewportHandler : IKeyframeMessageConsumer
             }
 
             // Rect format: X, Y, Width, Height.
-            // The values are in normalized screen cordinates (between 0 and 1).
+            // The values are in normalized screen coordinates (between 0 and 1).
             if (properties.rect?.Length == 4)
             {
                 var rect = properties.rect;
