@@ -114,6 +114,7 @@ public class Message
     public List<TextMessage> texts;
     public AbsTransform camera;
     public int serverKeyframeId;
+    public Dictionary<int, ViewportProperties> viewports;
 }
 
 [Serializable]
@@ -140,4 +141,12 @@ public class TextMessage
 {
     public string text;
     public List<float> position;
+}
+
+[Serializable]
+public class ViewportProperties
+{
+    public bool? enabled;
+    public float[] rect;
+    public AbsTransform camera;
 }
