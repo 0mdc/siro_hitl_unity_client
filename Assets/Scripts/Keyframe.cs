@@ -25,7 +25,8 @@ public class KeyframeData
     public Load[] loads;
     public RigCreation[] rigCreations;
     public CreationItem[] creations;
-    public StateUpdate[] stateUpdates;
+    public InstanceMetadataItem[] metadata;
+    public StateUpdateItem[] stateUpdates;
     public RigUpdate[] rigUpdates;
     public int[] deletions;
     public Message message;
@@ -68,17 +69,30 @@ public class Creation
 }
 
 [Serializable]
-public class StateUpdate
+public class StateUpdateItem
 {
     public int instanceKey;
-    public StateData state;
+    public StateUpdate state;
+}
 
-    [Serializable]
-    public class StateData
-    {
-        public AbsTransform absTransform;
-        public int semanticId;
-    }
+[Serializable]
+public class StateUpdate
+{
+    public AbsTransform absTransform;
+}
+
+[Serializable]
+public class InstanceMetadataItem
+{
+    public int instanceKey;
+    public InstanceMetadata metadata;
+}
+
+[Serializable]
+public class InstanceMetadata
+{
+    public int objectId;
+    public int semanticId;
 }
 
 [Serializable]
@@ -114,6 +128,7 @@ public class Message
     public List<TextMessage> texts;
     public AbsTransform camera;
     public int serverKeyframeId;
+    public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
     public Dialog dialog;
 }
@@ -145,9 +160,17 @@ public class TextMessage
 }
 
 [Serializable]
+public class ObjectProperties
+{
+    public bool? visible;
+    public int? layer;
+}
+
+[Serializable]
 public class ViewportProperties
 {
     public bool? enabled;
+    public int[] layers;
     public float[] rect;
     public AbsTransform camera;
 }
