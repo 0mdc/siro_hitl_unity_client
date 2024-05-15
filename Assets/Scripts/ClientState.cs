@@ -11,6 +11,7 @@ public class ClientState
     public MouseInputData mouse;
     public Dictionary<string, string> connection_params_dict;
     public int? recentServerKeyframeId = null;
+    public bool isLoading;
 }
 
 [Serializable]

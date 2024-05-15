@@ -135,6 +135,12 @@ public class InputTrackerKeyboard : IClientStateProducer
 
     public void Update()
     {
+        // Don't update if loading.
+        if (LoadProgressTracker.Instance.IsLoading)
+        {
+            return;
+        }
+
         // Record all keys that were pressed or released since the last OnEndFrame() call.
         // Note that multiple Unity frames may occur during that time.
         for (int i = 0; i < KEY_COUNT; i++)

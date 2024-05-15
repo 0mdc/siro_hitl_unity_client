@@ -351,6 +351,8 @@ public class NetworkClient : IUpdatable
 
     void UpdateClientState()
     {
+        _clientState.isLoading = LoadProgressTracker.Instance.IsLoading;
+        
         if (_clientStateProducers == null)
         {
             return;
