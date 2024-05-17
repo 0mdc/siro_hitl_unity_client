@@ -390,7 +390,7 @@ public class NetworkClient : IUpdatable
                 // Only include connection parameters in the first successful transmission.
                 if (_firstTransmission && _connectionParams?.Count > 0)
                 {
-                    _clientState.connection_params_dict = _connectionParams;
+                    _clientState.connectionParamsDict = _connectionParams;
                 }
 
                 // Serialize ClientState to JSON.

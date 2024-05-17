@@ -9,7 +9,7 @@ public class ClientState
     public AvatarData avatar;
     public ButtonInputData input;
     public MouseInputData mouse;
-    public Dictionary<string, string> connection_params_dict;
+    public Dictionary<string, string> connectionParamsDict;
     public int? recentServerKeyframeId = null;
     public bool isLoading;
 }
