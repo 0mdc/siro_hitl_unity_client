@@ -31,6 +31,12 @@ public class InputTrackerMouse : IClientStateProducer
 
     public void Update()
     {
+        // Don't update if loading.
+        if (LoadProgressTracker.Instance.IsLoading)
+        {
+            return;
+        }
+
         // Record all mouse actions that occurred OnEndFrame() call.
         // Note that multiple Unity frames may occur during that time.
         int mouseIndex = 0;
