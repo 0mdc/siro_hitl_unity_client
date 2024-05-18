@@ -12,9 +12,14 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
     {
         Camera _camera = null;
         Dialog _dialog = null;
-        HashSet<string> _clickedButtons = new HashSet<string>();
+        HashSet<string> _clickedButtons = new();
+        Dictionary<string, string> _textboxes = new();
 
         public List<string> ClickedButtons { get { return _clickedButtons.ToList(); } }
+        public Dictionary<string, string> Textboxes { get { return _textboxes; } }
+
+
+        GUIStyle _textAreaStyle = null;
 
         public void Reset()
         {
@@ -29,6 +34,27 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
         public void UpdateState(Dialog dialog)
         {
             _dialog = dialog;
+
+            // Sloppy: Only 1 textbox per dialog box
+            if (dialog == null || dialog.textbox == null)
+            {
+                _textboxes.Clear();
+            }
+            else
+            {
+                List<string> keysToRemove = new();
+                foreach (string key in _textboxes.Keys)
+                {
+                    if (key != dialog.textbox.id)
+                    {
+                        keysToRemove.Add(key);
+                    }
+                }
+                foreach (string key in keysToRemove)
+                {
+                    _textboxes.Remove(key);
+                }
+            }
 
             // TODO: Cleanup
             LoadProgressTracker.Instance._modalDialogueShown = dialog != null;
@@ -68,6 +94,30 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
             GUILayout.BeginVertical();
             GUI.color = Color.white;
             GUILayout.Label(_dialog.text);
+
+            Textbox textbox = _dialog.textbox;
+            if (textbox != null)
+            {
+                string textboxId = textbox.id;
+                GUI.enabled = textbox.enabled;
+                if (!_textboxes.ContainsKey(textboxId)) {
+                    _textboxes[textboxId] = textbox.text;
+                }
+                if (_textAreaStyle == null)
+                {
+                    _textAreaStyle = new GUIStyle(GUI.skin.GetStyle("TextArea"))
+                    {
+                        wordWrap = true
+                    };
+                }
+                _textboxes[textboxId] = GUILayout.TextArea(
+                    text:_textboxes[textboxId],
+                    maxLength:2048,
+                    style:_textAreaStyle,
+                    options: GUILayout.ExpandHeight(true)
+                );
+                GUI.enabled = true;
+            }
             
             GUILayout.BeginHorizontal();
             foreach (var button in _dialog.buttons)
@@ -91,7 +141,7 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
 
     public UIElementDrawer(Camera camera)
     {
-        _modalDialogue = new GameObject("LoadingScreenOverlay").AddComponent<ModalDialogue>();
+        _modalDialogue = new GameObject("UIElementDrawer").AddComponent<ModalDialogue>();
         _modalDialogue.Initialize(camera);
     }
 
@@ -106,6 +156,7 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
     public void UpdateClientState(ref ClientState state)
     {
         _uiElements.buttonsPressed = _modalDialogue.ClickedButtons;
+        _uiElements.textboxes = _modalDialogue.Textboxes;
         state.ui = _uiElements;
     }
 
