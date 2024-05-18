@@ -20,6 +20,7 @@ public class GfxReplayPlayer : IUpdatable
     const bool USE_KEYFRAME_INTERPOLATION = true;
 
     private Dictionary<int, GfxReplayInstance> _instanceDictionary = new();
+    private Dictionary<int, int> _objectIdToInstanceKey = new();
     private Dictionary<string, Load> _loadDictionary = new();
     private Dictionary<int, MovementData> _movementData = new();
     Dictionary<int, GfxReplayInstance> _skinnedMeshes = new();
@@ -219,13 +220,27 @@ public class GfxReplayPlayer : IUpdatable
                     creationItem.creation
                 );
 
-                int rigId = creationItem.creation.rigId;
+                int rigId = instance.rigId;
                 if (rigId != Constants.ID_UNDEFINED)
                 {
                     _skinnedMeshes[rigId] = instance;
                 }
 
                 _instanceDictionary[creationItem.instanceKey] = instance;
+            }
+        }
+
+        if (keyframe.metadata != null)
+        {
+            foreach (var metadata in keyframe.metadata)
+            {
+                int key = metadata.instanceKey;
+                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance instance))
+                {
+                    instance.ProcessMetadata(metadata.metadata);
+                    _objectIdToInstanceKey[instance.objectId] = key;
+                    Debug.Log($"{instance.objectId} -> {key}");
+                }
             }
         }
 
@@ -267,11 +282,53 @@ public class GfxReplayPlayer : IUpdatable
                         _skinnedMeshes.Remove(instance.rigId);
                     }
 
+                    if (_objectIdToInstanceKey.ContainsKey(instance.objectId))
+                    {
+                        _objectIdToInstanceKey.Remove(instance.objectId);
+                    }
+
                     _instanceDictionary[key].Destroy();
                     _instanceDictionary.Remove(key);
                 }
             }
             _coroutines.StartCoroutine(ReleaseUnusedMemory());
+        }
+
+        // Process object properties.
+        if (keyframe.message?.objects != null)
+        {
+            foreach (var pair in keyframe.message.objects)
+            {
+                int objectId = pair.Key;
+                ObjectProperties properties = pair.Value;
+                if (_objectIdToInstanceKey.TryGetValue(objectId, out int instanceKey))
+                {
+                    if (_instanceDictionary.TryGetValue(instanceKey, out GfxReplayInstance instance))
+                    {
+                        if (properties.visible.HasValue)
+                        {
+                            instance.SetVisibility(properties.visible.Value);
+                        }
+                        if (properties.layer.HasValue)
+                        {
+                            // Convention:
+                            // -1: Default layer (0).
+                            // 0-7: Layers 8-15.
+                            int inputLayer = properties.layer.Value;
+                            int unityLayer = 0;
+                            if (inputLayer > -1 && inputLayer < ViewportHandler.LAYER_COUNT)
+                            {
+                                unityLayer = inputLayer + ViewportHandler.FIRST_LAYER_INDEX;
+                            }
+                            instance.SetLayer(unityLayer);
+                        }                        
+                    }
+                    else
+                    {
+                        Debug.Log($"Instance with object ID {pair.Key} not found.");
+                    }
+                }
+            }
         }
     }
 
@@ -284,6 +341,7 @@ public class GfxReplayPlayer : IUpdatable
         _coroutines.StartCoroutine(ReleaseUnusedMemory());
         Debug.Log($"Deleted all {_instanceDictionary.Count} instances!");
         _instanceDictionary.Clear();
+        _objectIdToInstanceKey.Clear();
     }
 
     /// <summary>

@@ -18,11 +18,21 @@ public class ViewportHandler : IKeyframeMessageConsumer
 
     Camera _mainCamera;
 
+    // TODO: Move to constants.
+    public const int FIRST_LAYER_INDEX = 8;
+    public const int LAYER_COUNT = 8;
+    public const int LAST_LAYER_INDEX = FIRST_LAYER_INDEX + LAYER_COUNT;
+
     int DEFAULT_LAYERS = LayerMask.NameToLayer("Default") | LayerMask.NameToLayer("UI");
 
     public ViewportHandler(Camera mainCamera)
     {
         _mainCamera = mainCamera;
+        _mainCamera.cullingMask = DEFAULT_LAYERS;
+        for (int layerIndex = FIRST_LAYER_INDEX; layerIndex < LAST_LAYER_INDEX; ++layerIndex)
+        {
+            _mainCamera.cullingMask |= 1 << layerIndex;
+        }
         _viewports.Add(-1, new Viewport()
         {
             camera = mainCamera
@@ -80,11 +90,22 @@ public class ViewportHandler : IKeyframeMessageConsumer
             }
 
             // Rect format: X, Y, Width, Height.
-            // The values are in normalized screen cordinates (between 0 and 1).
+            // The values are in normalized screen coordinates (between 0 and 1).
             if (properties.rect?.Length == 4)
             {
                 var rect = properties.rect;
                 camera.rect = new Rect(rect[0], rect[1], rect[2], rect[3]);
+            }
+
+            if (properties.layers != null)
+            {
+                int mask = DEFAULT_LAYERS;
+                foreach (int layer in properties.layers)
+                {
+                    int layerIndex = FIRST_LAYER_INDEX + layer;
+                    mask |= 1 << layerIndex;
+                }
+                camera.cullingMask = mask;
             }
         }
     }
