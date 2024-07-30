@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class InputTrackerMouse : IClientStateProducer
 {
@@ -37,22 +39,44 @@ public class InputTrackerMouse : IClientStateProducer
             return;
         }
 
+        // Check whether the user is clicking the UI.
+        // UI mouse events are not relayed to the server.
+        var pointerEventData = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+        List<RaycastResult> results = new();
+        EventSystem.current.RaycastAll(pointerEventData, results);
+        bool clickingUI = false;
+        foreach (var result in results)
+        {
+            bool isButton = result.gameObject.GetComponent<UnityEngine.UI.Button>() != null;
+            if (isButton)
+            {
+                clickingUI = true;
+                break;
+            }
+        }
+
         // Record all mouse actions that occurred OnEndFrame() call.
         // Note that multiple Unity frames may occur during that time.
         int mouseIndex = 0;
-        for (KeyCode key = KeyCode.Mouse0; key <= KeyCode.Mouse2; key++, mouseIndex++)
+        if (!clickingUI)
         {
-            if (Input.GetKey(key))
+            for (KeyCode key = KeyCode.Mouse0; key <= KeyCode.Mouse2; key++, mouseIndex++)
             {
-                _buttonHeld[mouseIndex] = true;
-            }
-            if (Input.GetKeyUp(key))
-            {
-                _buttonUp[mouseIndex] = true;
-            }
-            else if (Input.GetKeyDown(key))
-            {
-                _buttonDown[mouseIndex] = true;
+                if (Input.GetKey(key))
+                {
+                    _buttonHeld[mouseIndex] = true;
+                }
+                if (Input.GetKeyUp(key))
+                {
+                    _buttonUp[mouseIndex] = true;
+                }
+                else if (Input.GetKeyDown(key))
+                {
+                    _buttonDown[mouseIndex] = true;
+                }
             }
         }
 
