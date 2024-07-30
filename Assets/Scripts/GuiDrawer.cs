@@ -21,10 +21,10 @@ public class GuiDrawer : IKeyframeMessageConsumer
 
         _container = new GameObject("GuiDrawer");
 
-        _circlePool = new LineRenderer[_config.highlightPoolSize];
-        _linePool = new LineRenderer[_config.highlightPoolSize];
+        _circlePool = new LineRenderer[_config.circlePoolSize];
+        _linePool = new LineRenderer[_config.linePoolSize];
 
-        float _arcSegmentLength = TWO_PI / _config.highlightCircleResolution;
+        float _arcSegmentLength = TWO_PI / _config.circleResolution;
 
         {
             // Construct a pool of circle line renderers.
@@ -44,8 +44,8 @@ public class GuiDrawer : IKeyframeMessageConsumer
                 lineRenderer.startWidth = config.highlightWidth;
                 lineRenderer.endWidth = config.highlightWidth;
                 lineRenderer.materials = config.highlightMaterials;
-                lineRenderer.positionCount = config.highlightCircleResolution;
-                for (int j = 0; j < config.highlightCircleResolution; ++j)
+                lineRenderer.positionCount = config.circleResolution;
+                for (int j = 0; j < config.circleResolution; ++j)
                 {
                     float xOffset = config.highlightBaseRadius * Mathf.Sin(j * _arcSegmentLength);
                     float yOffset = config.highlightBaseRadius * Mathf.Cos(j * _arcSegmentLength);
