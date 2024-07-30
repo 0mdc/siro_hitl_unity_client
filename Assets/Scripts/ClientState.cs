@@ -13,6 +13,7 @@ public class ClientState
     public int? recentServerKeyframeId = null;
     public bool isLoading;
     public UIElements ui;
+    public UIElements legacyUi;
 }
 
 [Serializable]
@@ -66,8 +67,8 @@ public class MouseInputData
 public class UIElements
 {
     // Collection of UI buttons that were pressed since the last client message.
-    public List<string> buttonsPressed = new List<string>();
+    public List<string> buttonsPressed = new();
 
     // Collection of textboxes and their latest content since the last client message.
-    public Dictionary<string, string> textboxes;
+    public Dictionary<string, string> textboxes = new();
 }

@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 
 /// <summary>
 /// Mouse/Keyboard Habitat client application.
@@ -26,6 +28,9 @@ public class AppMouseKeyboard : MonoBehaviour
     [Tooltip("Icon that is displayed when connection is lost.")]
     [SerializeField] private GameObject _offlineIcon;
 
+    [Tooltip("Container of UI prefab references.")]
+    [SerializeField] private UIPrefabs _uiPrefabs;
+
     // IKeyframeMessageConsumers
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
     GuiDrawer _guiDrawer;
@@ -41,6 +46,7 @@ public class AppMouseKeyboard : MonoBehaviour
 
     // Producer/Consumers
     UIElementDrawer _uiElementDrawer;
+    CanvasManager _canvasManager;
 
     // Application state
     ConfigLoader _configLoader;
@@ -49,10 +55,21 @@ public class AppMouseKeyboard : MonoBehaviour
     OnlineStatusDisplayHandler _onlineStatusDisplayHandler;
     ReplayFileLoader _replayFileLoader;
 
+    // Unity components
+    InputSystemUIInputModule _inputSystemUIInputModule;
+
     protected void Awake()
     {
+        // Create Unity components
+        if (GameObject.FindFirstObjectByType<InputSystemUIInputModule>() == null)
+        {
+            _inputSystemUIInputModule = new GameObject("Event System").AddComponent<InputSystemUIInputModule>();
+            _inputSystemUIInputModule.gameObject.AddComponent<EventSystem>();
+        }
+
         // Initialize Producer/Consumers.
         _uiElementDrawer = new UIElementDrawer(_camera);
+        _canvasManager = new CanvasManager(_camera, _uiPrefabs, GameObject.FindObjectOfType<MainCanvas>());
 
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
@@ -73,6 +90,7 @@ public class AppMouseKeyboard : MonoBehaviour
             _loadingScreenOverlay,
             _viewportHandler,
             _uiElementDrawer,
+            _canvasManager,
         };
 
         // Initialize IClientStateProducers.
@@ -83,6 +101,7 @@ public class AppMouseKeyboard : MonoBehaviour
             _inputTrackerMouse,
             _inputTrackerKeyboard,
             _uiElementDrawer,
+            _canvasManager,
         };
 
         // Initialize application state.

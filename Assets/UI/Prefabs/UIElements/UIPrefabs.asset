@@ -1,0 +1,18 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc143bf761b07d134be297187312f1b4, type: 3}
+  m_Name: UIPrefabs
+  m_EditorClassIdentifier: 
+  ButtonPrefab: {fileID: 6372311278131400439, guid: 925e8438bde8824deb2a4167cf76cb14, type: 3}
+  LabelPrefab: {fileID: 5717161832063995947, guid: 241c58c268eb42cfe88c2bdea1bd67e7, type: 3}
+  ListItemPrefab: {fileID: 2742773768067938287, guid: b4acdb6bdd19f671b90f17128190d4ee, type: 3}
+  TogglePrefab: {fileID: 7824554693241946745, guid: 542cdd0dcea1c8e6ca9c26bf6ee2b700, type: 3}

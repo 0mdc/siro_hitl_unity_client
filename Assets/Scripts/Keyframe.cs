@@ -131,6 +131,10 @@ public class Message
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
     public Dialog dialog;
+
+    public List<UIUpdate> uiUpdates;
+    public List<string> clearCanvases;
+    public Dictionary<string, List<float>> canvasPositions;
 }
 
 [Serializable]
@@ -175,6 +179,7 @@ public class ViewportProperties
     public AbsTransform camera;
 }
 
+[Serializable]
 public class Dialog
 {
     public string title;
@@ -197,4 +202,60 @@ public class Textbox
     public string id;
     public string text;
     public bool enabled;
+}
+
+
+[Serializable]
+public class UIElement
+{
+    public string uid;
+}
+
+[Serializable]
+public class UILabel : UIElement
+{
+    public string text;
+    public int horizontalAlignment;
+    public int fontSize;
+    public bool bold;
+    public float[] color;
+}
+
+
+[Serializable]
+public class UIListItem : UIElement
+{
+    public bool enabled;
+    public string textLeft;
+    public string textRight;
+    public int fontSize;
+    public float[] color;
+}
+
+[Serializable]
+public class UIToggle : UIElement
+{
+    public bool enabled;
+    public bool toggled;
+    public string textFalse;
+    public string textTrue;
+    public float[] color;
+}
+
+[Serializable]
+public class UIButton : UIElement
+{
+    public bool enabled;
+    public string text;
+    public float[] color;
+}
+
+[Serializable]
+public class UIUpdate
+{
+    public string canvas;
+    public UILabel label;
+    public UIToggle toggle;
+    public UIButton button;
+    public UIListItem listItem;
 }

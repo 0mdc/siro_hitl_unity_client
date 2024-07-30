@@ -238,6 +238,7 @@ public class NetworkClient : IUpdatable
                 // If disconnected after the session has started, do not reconnect.
                 SetDisconnectStatus("Session ended.");
                 _player.DeleteAllInstancesFromKeyframes();
+                _player.Clear();
                 yield break;
             }
             else
