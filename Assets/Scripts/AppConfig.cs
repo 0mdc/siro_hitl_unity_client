@@ -3,13 +3,16 @@ using UnityEngine;
 [CreateAssetMenu(fileName = "AppConfig", menuName = "Habitat/AppConfig.Config", order = 1)]
 public class AppConfig : ScriptableObject
 {
-    [Header("Circle Rendering")]
+    [Header("GuiDrawer")]
 
-    [Tooltip("Size of the highlight object pool.\nIf the amount of highlights received from the server is higher that this number, the excess will be discarded.\nThis value cannot be changed during runtime.")]
-    public int highlightPoolSize = 32;
+    [Tooltip("Size of the line object pool.\nIf the amount of highlights received from the server is higher that this number, the excess will be discarded.\nThis value cannot be changed during runtime.")]
+    public int linePoolSize = 256;
+
+    [Tooltip("Size of the circle object pool.\nIf the amount of highlights received from the server is higher that this number, the excess will be discarded.\nThis value cannot be changed during runtime.")]
+    public int circlePoolSize = 64;
 
     [Tooltip("Line segment count composing the highlight circles.\nThis value cannot be changed during runtime.")]
-    public int highlightCircleResolution = 32;
+    public int circleResolution = 32;
 
     [Tooltip("Default vertex color of the highlight lines.")]
     public Color highlightDefaultColor = Color.white;
