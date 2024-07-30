@@ -23,7 +23,7 @@ public class ViewportHandler : IKeyframeMessageConsumer
     public const int LAYER_COUNT = 8;
     public const int LAST_LAYER_INDEX = FIRST_LAYER_INDEX + LAYER_COUNT;
 
-    int DEFAULT_LAYERS = LayerMask.NameToLayer("Default") | LayerMask.NameToLayer("UI");
+    int DEFAULT_LAYERS = LayerMask.GetMask("Default");
 
     public ViewportHandler(Camera mainCamera)
     {
