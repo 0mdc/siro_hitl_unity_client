@@ -17,6 +17,7 @@ public class LoadProgressTracker
 
     // TODO: Refactor.
     public bool _modalDialogueShown = false;
+    public bool _applicationTerminated = false;
 
     /// <summary>
     /// Get the LoadProgressTracker singleton.

@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: UIPrefabs
   m_EditorClassIdentifier: 
   ButtonPrefab: {fileID: 6372311278131400439, guid: 925e8438bde8824deb2a4167cf76cb14, type: 3}
-  LabelPrefab: {fileID: 5717161832063995947, guid: 241c58c268eb42cfe88c2bdea1bd67e7, type: 3}
+  LabelPrefab: {fileID: 7497251443271363981, guid: d8f4927bb69e62280a6792aeec3b411e, type: 3}
   ListItemPrefab: {fileID: 2742773768067938287, guid: b4acdb6bdd19f671b90f17128190d4ee, type: 3}
   TogglePrefab: {fileID: 7824554693241946745, guid: 542cdd0dcea1c8e6ca9c26bf6ee2b700, type: 3}

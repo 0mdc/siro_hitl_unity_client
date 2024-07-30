@@ -344,11 +344,6 @@ public class GfxReplayPlayer : IUpdatable
         _objectIdToInstanceKey.Clear();
     }
 
-    public void Clear()
-    {
-        ProcessKeyframe(new KeyframeData());
-    }
-
     /// <summary>
     /// Unloads the unused resources from GPU and CPU memory.
     /// This is normally done automatically when changing scene.

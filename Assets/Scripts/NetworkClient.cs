@@ -8,24 +8,6 @@ using System.Collections;
 using System.Threading.Tasks;
 using System.Web;
 
-/// <summary>
-/// MonoBehaviour that renders on-screen text for NetworkClient.
-/// </summary>
-public class NetworkClientGUI : MonoBehaviour
-{
-    public string TextMessage { get; set; } = "";
-
-    public void OnGUI()
-    {
-        GUILayout.BeginArea(new Rect(16, 16, 200, 200));
-        GUILayout.BeginVertical();
-        GUI.color = Color.white;
-        GUILayout.Label(TextMessage);
-        GUILayout.EndVertical();
-        GUILayout.EndArea();
-    }
-}
-
 public class NetworkClient : IUpdatable
 {
     const float CLIENT_STATE_SEND_FREQUENCY = 0.1f;
@@ -60,12 +42,12 @@ public class NetworkClient : IUpdatable
 
     private GfxReplayPlayer _player;
     private ConfigLoader _configLoader;
+    private CanvasManager _canvasManager;
 
     Dictionary<string, string> _connectionParams;
     ClientState _clientState = new ClientState();
     IClientStateProducer[] _clientStateProducers;
     CoroutineContainer _coroutines;
-    NetworkClientGUI _textRenderer;
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
 
     // The client will try to connect until a successful session has started.
@@ -84,14 +66,14 @@ public class NetworkClient : IUpdatable
         MissingMemberHandling = MissingMemberHandling.Ignore
     };
 
-    public NetworkClient(GfxReplayPlayer player, ConfigLoader configLoader, IClientStateProducer[] clientStateProducers, ServerKeyframeIdHandler serverKeyframeIdHandler)
+    public NetworkClient(GfxReplayPlayer player, ConfigLoader configLoader, IClientStateProducer[] clientStateProducers, ServerKeyframeIdHandler serverKeyframeIdHandler, CanvasManager canvasManager = null)
     {
         _player = player;
         _configLoader = configLoader;
         _clientStateProducers = clientStateProducers;
         _serverKeyframeIdHandler = serverKeyframeIdHandler;
         _coroutines = CoroutineContainer.Create("NetworkClient");
-        _textRenderer = new GameObject("NetworkClientGUI").AddComponent<NetworkClientGUI>();
+        _canvasManager = canvasManager;
         
         // Read URL query parameters
         _connectionParams = ConnectionParameters.GetConnectionParameters(Application.absoluteURL);
@@ -236,9 +218,13 @@ public class NetworkClient : IUpdatable
             else if (mainWebSocket == null && !_tryReconnecting)
             {
                 // If disconnected after the session has started, do not reconnect.
-                SetDisconnectStatus("Session ended.");
                 _player.DeleteAllInstancesFromKeyframes();
-                _player.Clear();
+                SetDisconnectStatus("Disconnected.");
+
+                // TODO: Cleanup
+                LoadProgressTracker.Instance._modalDialogueShown = false;
+                LoadProgressTracker.Instance._applicationTerminated = true;
+
                 yield break;
             }
             else
@@ -391,7 +377,23 @@ public class NetworkClient : IUpdatable
 
     void SetDisconnectStatus(string status)
     {
-        _textRenderer.TextMessage = status;
+        if (_canvasManager != null)
+        {
+            _canvasManager.ClearAllCanvases();
+            _canvasManager.AddUIElement(new()
+            {
+                canvas="top_left",
+                label=new()
+                {
+                    uid="disconnect_status",
+                    text=status,
+                    bold=false,
+                    fontSize=24,
+                    color=new float[]{1.0f, 1.0f, 1.0f, 1.0f},
+                    horizontalAlignment=0,
+                }   
+            });
+        }
     }
 
     IEnumerator SendClientState()

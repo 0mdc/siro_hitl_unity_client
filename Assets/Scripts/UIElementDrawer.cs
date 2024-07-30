@@ -62,7 +62,7 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
 
         void OnGUI()
         {
-            if (_dialog == null || _camera == null || LoadProgressTracker.Instance.IsLoading)
+            if (_dialog == null || _camera == null || LoadProgressTracker.Instance.IsLoading || LoadProgressTracker.Instance._applicationTerminated)
             {
                 return;
             }

@@ -107,7 +107,7 @@ public class AppMouseKeyboard : MonoBehaviour
         // Initialize application state.
         _configLoader = new ConfigLoader(_defaultServerLocations);
         _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers);
-        _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers, _serverKeyframeIdHandler);
+        _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers, _serverKeyframeIdHandler, _canvasManager);
         _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_offlineIcon, _camera);
         _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
     }

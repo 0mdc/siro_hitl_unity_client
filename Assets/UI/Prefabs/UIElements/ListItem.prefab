@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 8265467506020684553}
   - component: {fileID: 3171938253420859533}
   m_Layer: 5
-  m_Name: Text (TMP) (2)
+  m_Name: Left
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -67,8 +67,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Left Click
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ab97dd4cd38e9ab03b5be82f18b4aed9, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: ab97dd4cd38e9ab03b5be82f18b4aed9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -331,7 +331,7 @@ GameObject:
   - component: {fileID: 3639088374800520485}
   - component: {fileID: 236831828499740649}
   m_Layer: 5
-  m_Name: Text (TMP) (1)
+  m_Name: Right
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -386,8 +386,8 @@ MonoBehaviour:
       m_Calls: []
   m_text: Select
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: ab97dd4cd38e9ab03b5be82f18b4aed9, type: 2}
+  m_sharedMaterial: {fileID: 2180264, guid: ab97dd4cd38e9ab03b5be82f18b4aed9, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []

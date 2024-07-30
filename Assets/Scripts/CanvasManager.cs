@@ -39,6 +39,11 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
         _mainCanvas.Initialize(_uiCamera);
     }
 
+    public void ClearAllCanvases()
+    {
+        _mainCanvas.ClearAllCanvases(ref _uiElements);
+    }
+
     public void ProcessMessage(Message message)
     {
         // Delete UI elements first.

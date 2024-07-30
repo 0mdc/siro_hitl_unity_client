@@ -83,6 +83,14 @@ public class MainCanvas : MonoBehaviour
         }
     }
 
+    public void ClearAllCanvases(ref Dictionary<string, GameObject> elementSet)
+    {
+        foreach (string canvasId in _canvases.Keys)
+        {
+            ClearCanvas(canvasId, ref elementSet);
+        }
+    }
+
     public void MoveCanvas(string canvasId, Vector3 position, Camera _uiCamera)
     {
         Canvas canvas;
@@ -100,6 +108,7 @@ public class MainCanvas : MonoBehaviour
 
     public void Update()
     {
-        _mainCanvas.GetComponent<Canvas>().enabled = !LoadProgressTracker.Instance.IsApplicationPaused;
+        // TODO: Refactor
+        _mainCanvas.GetComponent<Canvas>().enabled = !LoadProgressTracker.Instance._modalDialogueShown;
     }
 }
