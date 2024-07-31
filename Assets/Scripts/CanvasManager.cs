@@ -15,6 +15,7 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
     MainCanvas _mainCanvas;
 
     Dictionary<string, GameObject> _uiElements = new ();
+    string _tooltip = null;
 
     public CanvasManager(Camera mainCamera, UIPrefabs uiPrefabs)
     {
@@ -25,7 +26,7 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
         _uiCamera.cullingMask = LayerMask.GetMask("UI");
         _uiCamera.transform.SetParent(mainCamera.transform, worldPositionStays:false);
 
-        _mainCanvas = new MainCanvas(_uiCamera);
+        _mainCanvas = new MainCanvas(_uiCamera, _uiPrefabs);
 
         // Make the UI camera an "overlay camera", which renders on top of others.
         var uiCameraData = _uiCamera.GetUniversalAdditionalCameraData();
@@ -80,8 +81,9 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
 
     public void AddUIElement(UIUpdate uiUpdate)
     {
-        string canvasKey = uiUpdate.canvas;
-        
+        string canvasKey = uiUpdate.canvasUid;
+
+        _mainCanvas.UpdateCanvas(uiUpdate.canvas);
         AddUIElement(canvasKey, uiUpdate.button);
         AddUIElement(canvasKey, uiUpdate.toggle);
         AddUIElement(canvasKey, uiUpdate.label);
@@ -141,6 +143,69 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
             default:
                 // Unsupported element.
                 break;
+        }
+    }
+
+    public Rect RectTransformToScreenSpace(RectTransform transform)
+    {
+        Vector3[] corners = new Vector3[4];
+        transform.GetWorldCorners(corners);
+
+        for (int i = 0; i < corners.Length; i++)
+        {
+            corners[i] = _uiCamera.WorldToScreenPoint(corners[i]);
+            corners[i] = new Vector3(Mathf.RoundToInt(corners[i].x), Mathf.RoundToInt(corners[i].y), corners[i].z);
+        }
+
+        float minX = Mathf.Min(corners[0].x, corners[1].x, corners[2].x, corners[3].x);
+        float minY = Mathf.Min(corners[0].y, corners[1].y, corners[2].y, corners[3].y);
+        float width = Mathf.Max(corners[0].x, corners[1].x, corners[2].x, corners[3].x) - minX;
+        float height = Mathf.Max(corners[0].y, corners[1].y, corners[2].y, corners[3].y) - minY;
+
+        return new Rect(minX, minY, width, height);
+    }
+
+    public void UpdateTooltip(string tooltip, RectTransform transform)
+    {
+        if (_tooltip != tooltip)
+        {
+            _tooltip = tooltip;
+            if (string.IsNullOrEmpty(tooltip) || transform == null)
+            {
+                _mainCanvas.ClearCanvas("tooltip", ref _uiElements);
+            }
+            else
+            {
+                AddUIElement(new()
+                {
+                    canvasUid="tooltip",
+                    canvas=new()
+                    {
+                        uid="tooltip",
+                        padding=12,
+                        backgroundColor=new float[]{0.5f, 0.5f, 0.5f, 1.0f} 
+                    },
+                    label=new()
+                    {
+                        uid="__tooltip",
+                        text=tooltip,
+                        bold=false,
+                        fontSize=24,
+                        horizontalAlignment=0,
+                    }
+                });
+
+                // Sloppy
+                var canvasRect = RectTransformToScreenSpace(transform.parent as RectTransform);
+                var canvasRightEdgeX = (canvasRect.center + canvasRect.width * Vector2.one * 0.5f).x;
+
+                var controlRect = RectTransformToScreenSpace(transform);
+                var controlCenterY = controlRect.center.y;
+                var screenPoint = new Vector2(canvasRightEdgeX + 12, controlCenterY);
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(transform.parent.parent as RectTransform, screenPoint, _uiCamera, out Vector2 localPoint);                
+
+                _mainCanvas.MoveCanvas("tooltip", localPoint);
+            }
         }
     }
 

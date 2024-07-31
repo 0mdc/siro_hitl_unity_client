@@ -24,5 +24,9 @@ public class UIElementButton : UIGameObject<UIButton>
         {
             _button.image.color = new Color(data.color[0], data.color[1], data.color[2], data.color[3]);
         }
+        else
+        {
+            _button.image.color = Color.white;
+        }
     }
 }

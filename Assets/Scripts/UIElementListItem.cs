@@ -25,5 +25,10 @@ public class UIElementListItem : UIGameObject<UIListItem>
             _textLeft.color = clr;
             _textRight.color = clr;
         }
+        else
+        {
+            _textLeft.color = Color.white;
+            _textRight.color = Color.white;
+        }
     }
 }

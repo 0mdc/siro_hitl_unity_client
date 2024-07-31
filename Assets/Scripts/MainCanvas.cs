@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using UnityEngine.InputSystem.UI;
+using UnityEditor.Experimental.GraphView;
 
 public class CanvasData
 {
@@ -13,6 +14,7 @@ public class CanvasData
     public RectTransform transform;
     public LayoutGroup group;
     public GraphicRaycaster raycaster;
+    public Image background;
     public Dictionary<string, GameObject> content = new();
 
     public CanvasData(
@@ -20,13 +22,15 @@ public class CanvasData
         Canvas canvas,
         RectTransform transform,
         LayoutGroup group,
-        GraphicRaycaster raycaster)
+        GraphicRaycaster raycaster,
+        Image background)
     {
         this.uid = uid;
         this.canvas = canvas;
         this.transform = transform;
         this.group = group;
         this.raycaster = raycaster;
+        this.background = background;
     }
 }
 
@@ -37,7 +41,7 @@ public class MainCanvas : IUpdatable
     InputSystemUIInputModule _inputSystem;
     Dictionary<string, CanvasData> _canvases = new();
 
-    public MainCanvas(Camera uiCamera)
+    public MainCanvas(Camera uiCamera, UIPrefabs uiPrefabs)
     {
         if (GameObject.FindFirstObjectByType<InputSystemUIInputModule>() == null)
         {
@@ -48,7 +52,7 @@ public class MainCanvas : IUpdatable
         _root = CreateRootCanvas(uiCamera);
 
         float uiScale = 0.55f;
-        int padding = 16;
+        int padding = 12;
 
         var uids = new string[]
         {
@@ -69,11 +73,15 @@ public class MainCanvas : IUpdatable
             {
                 int alignment = 3 * v + h;
                 string uid = uids[alignment];
-                var canvas = CreateCanvas(uid, h, v, padding, uiScale);
+                var canvas = CreateCanvas(uid, h, v, padding, uiScale, uiPrefabs.CanvasBackground);
 
                 _canvases[uid] = canvas;
             }
         }
+
+        string tooltipUid = "tooltip";
+        var tooltip = CreateCanvas(tooltipUid, 0, 1, padding, uiScale, uiPrefabs.CanvasBackground);
+        _canvases[tooltipUid] = tooltip;
     }
 
     public Canvas CreateRootCanvas(Camera uiCamera)
@@ -95,7 +103,7 @@ public class MainCanvas : IUpdatable
         return canvas;
     }
 
-    public CanvasData CreateCanvas(string uid, int horizontalAlignment, int verticalAlignment, int padding, float uiScale)
+    public CanvasData CreateCanvas(string uid, int horizontalAlignment, int verticalAlignment, int padding, float uiScale, Sprite canvasBackground)
     {
         var container = new GameObject(uid);
         container.layer = LayerMask.NameToLayer("UI");
@@ -136,7 +144,14 @@ public class MainCanvas : IUpdatable
 
         var raycaster = container.AddComponent<GraphicRaycaster>();
 
-        return new CanvasData(uid, canvas, rect, group, raycaster);
+        var background = container.AddComponent<Image>();
+        background.sprite = canvasBackground;
+        background.type = Image.Type.Sliced;
+        background.color = Color.clear;
+
+        canvas.enabled = false;
+
+        return new CanvasData(uid, canvas, rect, group, raycaster, background);
     }
 
     public void AddUIElement(string canvasId, string uid, GameObject element)
@@ -151,6 +166,8 @@ public class MainCanvas : IUpdatable
         var elementRectTransform = element.GetComponent<RectTransform>();
         elementRectTransform.SetParent(data.transform, worldPositionStays:false);
         data.content[uid] = element;
+
+        data.canvas.enabled = true;
     }
 
     public void ClearCanvas(string canvasId, ref Dictionary<string, GameObject> elementSet)
@@ -174,6 +191,10 @@ public class MainCanvas : IUpdatable
             data.content.Remove(deletedKey);
             elementSet.Remove(deletedKey);
         }
+
+        data.canvas.enabled = false;
+        data.background.color = Color.clear;
+        data.group.padding = new RectOffset(0, 0, 0, 0);
     }
 
     public void ClearAllCanvases(ref Dictionary<string, GameObject> elementSet)
@@ -184,7 +205,7 @@ public class MainCanvas : IUpdatable
         }
     }
 
-    public void MoveCanvas(string canvasId, Vector3 position, Camera _uiCamera)
+    public void MoveCanvas(string canvasId, Vector3 worldPosition, Camera _uiCamera)
     {
         CanvasData data;
         if (!_canvases.TryGetValue(canvasId, out data))
@@ -193,9 +214,49 @@ public class MainCanvas : IUpdatable
             return;
         }
 
-        var screenPos = _uiCamera.WorldToViewportPoint(position);
+        var screenPos = _uiCamera.WorldToViewportPoint(worldPosition);
         data.transform.anchorMin = screenPos;
         data.transform.anchorMax = screenPos;
+    }
+
+    public void MoveCanvas(string canvasId, Vector2 position)
+    {
+        CanvasData data;
+        if (!_canvases.TryGetValue(canvasId, out data))
+        {
+            Debug.LogError($"Canvas '{canvasId}' not found.");
+            return;
+        }
+
+        data.transform.localPosition = position;
+    }
+
+    public void UpdateCanvas(UICanvas update)
+    {
+        if (update == null)
+        {
+            return;
+        }
+
+        CanvasData data;
+        if (!_canvases.TryGetValue(update.uid, out data))
+        {
+            Debug.LogError($"Canvas '{update.uid}' not found.");
+            return;
+        }
+
+        int p = update.padding;
+        data.group.padding = new RectOffset(p, p, p, p);
+
+        var color = update.backgroundColor;
+        if (color != null && color.Length == 4)                
+        {
+            data.background.color = new Color(color[0], color[1], color[2], color[3]);
+        }
+        else
+        {
+            data.background.color = Color.clear;
+        }
     }
 
     public void Update()

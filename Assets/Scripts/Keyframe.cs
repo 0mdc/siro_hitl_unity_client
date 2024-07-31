@@ -212,6 +212,14 @@ public class UIElement
 }
 
 [Serializable]
+public class UICanvas
+{
+    public string uid;
+    public int padding;
+    public float[] backgroundColor;
+}
+
+[Serializable]
 public class UILabel : UIElement
 {
     public string text;
@@ -240,6 +248,7 @@ public class UIToggle : UIElement
     public string textFalse;
     public string textTrue;
     public float[] color;
+    public string tooltip;
 }
 
 [Serializable]
@@ -253,7 +262,8 @@ public class UIButton : UIElement
 [Serializable]
 public class UIUpdate
 {
-    public string canvas;
+    public string canvasUid;
+    public UICanvas canvas;
     public UILabel label;
     public UIToggle toggle;
     public UIButton button;

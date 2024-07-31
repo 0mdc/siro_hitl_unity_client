@@ -33,6 +33,10 @@ public class UIElementLabel : UIGameObject<UILabel>
         {
             _text.color = new Color(color[0], color[1], color[2], color[3]);
         }
+        else
+        {
+            _text.color = Color.white;
+        }
         _text.fontSize = data.fontSize;
         _text.fontWeight = data.bold ? FontWeight.Bold : FontWeight.Regular;
     }

@@ -382,7 +382,7 @@ public class NetworkClient : IUpdatable
             _canvasManager.ClearAllCanvases();
             _canvasManager.AddUIElement(new()
             {
-                canvas="top_left",
+                canvasUid="top_left",
                 label=new()
                 {
                     uid="disconnect_status",
