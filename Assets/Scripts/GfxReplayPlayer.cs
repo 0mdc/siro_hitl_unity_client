@@ -17,7 +17,7 @@ public class GfxReplayPlayer : IUpdatable
         public float startTime;          // Time when this movement data was created or updated
     }
 
-    const bool USE_KEYFRAME_INTERPOLATION = true;
+    const bool USE_KEYFRAME_INTERPOLATION = false;
 
     private Dictionary<int, GfxReplayInstance> _instanceDictionary = new();
     private Dictionary<int, int> _objectIdToInstanceKey = new();
