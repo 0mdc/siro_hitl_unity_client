@@ -60,16 +60,9 @@ public class AppMouseKeyboard : MonoBehaviour
 
     protected void Awake()
     {
-        // Create Unity components
-        if (GameObject.FindFirstObjectByType<InputSystemUIInputModule>() == null)
-        {
-            _inputSystemUIInputModule = new GameObject("Event System").AddComponent<InputSystemUIInputModule>();
-            _inputSystemUIInputModule.gameObject.AddComponent<EventSystem>();
-        }
-
         // Initialize Producer/Consumers.
         _uiElementDrawer = new UIElementDrawer(_camera);
-        _canvasManager = new CanvasManager(_camera, _uiPrefabs, GameObject.FindObjectOfType<MainCanvas>());
+        _canvasManager = new CanvasManager(_camera, _uiPrefabs);
 
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();

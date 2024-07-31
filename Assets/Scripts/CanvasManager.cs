@@ -12,18 +12,20 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
     Camera _uiCamera;
     Camera _mainCamera;
     UIPrefabs _uiPrefabs;
+    MainCanvas _mainCanvas;
 
     Dictionary<string, GameObject> _uiElements = new ();
 
-    MainCanvas _mainCanvas;
-
-    public CanvasManager(Camera mainCamera, UIPrefabs uiPrefabs, MainCanvas mainCanvas)
+    public CanvasManager(Camera mainCamera, UIPrefabs uiPrefabs)
     {
         _mainCamera = mainCamera;
+        _uiPrefabs = uiPrefabs;
 
         _uiCamera = new GameObject("UI Camera").AddComponent<Camera>();
         _uiCamera.cullingMask = LayerMask.GetMask("UI");
         _uiCamera.transform.SetParent(mainCamera.transform, worldPositionStays:false);
+
+        _mainCanvas = new MainCanvas(_uiCamera);
 
         // Make the UI camera an "overlay camera", which renders on top of others.
         var uiCameraData = _uiCamera.GetUniversalAdditionalCameraData();
@@ -32,11 +34,6 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
         // Add the UI camera as an overlay to the main camera.
         var mainCameraData = _mainCamera.GetUniversalAdditionalCameraData();
         mainCameraData.cameraStack.Add(_uiCamera);
-
-        _uiPrefabs = uiPrefabs;
-        _mainCanvas = mainCanvas;
-
-        _mainCanvas.Initialize(_uiCamera);
     }
 
     public void ClearAllCanvases()
@@ -150,6 +147,7 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
 
     public void Update()
     {
+        _mainCanvas.Update();
     }
 
 #endregion

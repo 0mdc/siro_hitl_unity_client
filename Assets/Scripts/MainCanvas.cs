@@ -2,83 +2,176 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Loading;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using UnityEngine.InputSystem.UI;
 
-public class MainCanvas : MonoBehaviour
+public class CanvasData
 {
-    [SerializeField] Canvas _mainCanvas;
-    [SerializeField] Canvas _topLeftCanvas;
-    [SerializeField] Canvas _topRightCanvas;
-    [SerializeField] Canvas _bottomLeftCanvas;
-    [SerializeField] Canvas _bottomRightCanvas;
-    [SerializeField] Canvas _floatingCanvas;
+    public string uid;
+    public Canvas canvas;
+    public RectTransform transform;
+    public LayoutGroup group;
+    public GraphicRaycaster raycaster;
+    public Dictionary<string, GameObject> content = new();
 
-    Dictionary<string, Canvas> _canvases;
-    Dictionary<string, Dictionary<string, GameObject>> _elements;
-
-    void Awake()
+    public CanvasData(
+        string uid,
+        Canvas canvas,
+        RectTransform transform,
+        LayoutGroup group,
+        GraphicRaycaster raycaster)
     {
+        this.uid = uid;
+        this.canvas = canvas;
+        this.transform = transform;
+        this.group = group;
+        this.raycaster = raycaster;
+    }
+}
+
+
+public class MainCanvas : IUpdatable
+{
+    Canvas _root;
+    InputSystemUIInputModule _inputSystem;
+    Dictionary<string, CanvasData> _canvases = new();
+
+    public MainCanvas(Camera uiCamera)
+    {
+        if (GameObject.FindFirstObjectByType<InputSystemUIInputModule>() == null)
+        {
+            _inputSystem = new GameObject("Event System").AddComponent<InputSystemUIInputModule>();
+            _inputSystem.gameObject.AddComponent<EventSystem>();
+        }
+
+        _root = CreateRootCanvas(uiCamera);
+
+        float uiScale = 0.55f;
+        int padding = 16;
+
+        var uids = new string[]
+        {
+            "top_left",
+            "top",
+            "top_right",
+            "left",
+            "center",
+            "right",
+            "bottom_left",
+            "bottom",
+            "bottom_right",
+        };
+
+        for (int h = 0; h < 3; ++h)
+        {
+            for (int v = 0; v < 3; ++v)
+            {
+                int alignment = 3 * v + h;
+                string uid = uids[alignment];
+                var canvas = CreateCanvas(uid, h, v, padding, uiScale);
+
+                _canvases[uid] = canvas;
+            }
+        }
     }
 
-    public void Initialize(Camera camera)
+    public Canvas CreateRootCanvas(Camera uiCamera)
     {
-        _mainCanvas.worldCamera = camera;
+        var container = new GameObject("UI");
+        container.layer = LayerMask.NameToLayer("UI");
 
-        _canvases = new()
-        {
-            {"top_left", _topLeftCanvas},
-            {"top_right", _topRightCanvas},
-            {"bottom_left", _bottomLeftCanvas},
-            {"bottom_right", _bottomRightCanvas},
-            {"floating", _floatingCanvas},
-        };
-        _elements = new()
-        {
-            {"top_left", new()},
-            {"top_right", new()},
-            {"bottom_left", new()},
-            {"bottom_right", new()},
-            {"floating", new()},
-        };
+        var canvas = container.AddComponent<Canvas>();
+        canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        canvas.worldCamera = uiCamera;
+        canvas.vertexColorAlwaysGammaSpace = true;
+        
+        var canvasScaler = container.AddComponent<CanvasScaler>();
+        canvasScaler.scaleFactor = 1f;
+        canvasScaler.referencePixelsPerUnit = 100f;
+
+        container.AddComponent<GraphicRaycaster>();
+
+        return canvas;
+    }
+
+    public CanvasData CreateCanvas(string uid, int horizontalAlignment, int verticalAlignment, int padding, float uiScale)
+    {
+        var container = new GameObject(uid);
+        container.layer = LayerMask.NameToLayer("UI");
+        var canvas = container.AddComponent<Canvas>();
+
+        var rect = container.GetComponent<RectTransform>();        
+        rect.SetParent(_root.transform, false);
+        int alignment = 3 * verticalAlignment + horizontalAlignment;
+        rect.localScale = uiScale * Vector3.one;
+        rect.pivot = new Vector2(
+            x: horizontalAlignment * 0.5f,
+            y: (2f - verticalAlignment) * 0.5f
+        );
+        rect.anchorMin = rect.pivot;
+        rect.anchorMax = rect.pivot;
+        rect.anchoredPosition = new Vector2(
+            x: (horizontalAlignment - 1f) * padding,
+            y: (2f - verticalAlignment - 1f) * padding
+        );
+        rect.anchoredPosition = new Vector2(
+            x: (2f - horizontalAlignment - 1f) * padding,
+            y: (verticalAlignment - 1f) * padding
+        );
+
+        var group = container.AddComponent<VerticalLayoutGroup>();
+        group.spacing = 6;
+        group.childAlignment = (TextAnchor)alignment;
+        group.childControlWidth = true;
+        group.childControlHeight = true;
+        group.childScaleWidth = false;
+        group.childScaleHeight = false;
+        group.childForceExpandWidth = true;
+        group.childForceExpandHeight = true;
+
+        var contentSizeFitter = container.AddComponent<ContentSizeFitter>();
+        contentSizeFitter.horizontalFit = ContentSizeFitter.FitMode.PreferredSize;
+        contentSizeFitter.verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+        var raycaster = container.AddComponent<GraphicRaycaster>();
+
+        return new CanvasData(uid, canvas, rect, group, raycaster);
     }
 
     public void AddUIElement(string canvasId, string uid, GameObject element)
     {
-        // TODO: GetGroupRectTransform...
-        Canvas canvas;
-        if (!_canvases.TryGetValue(canvasId, out canvas))
+        CanvasData data;
+        if (!_canvases.TryGetValue(canvasId, out data))
         {
             Debug.LogError($"Canvas '{canvasId}' not found.");
             return;
         }
 
-        var group = canvas.GetComponent<HorizontalOrVerticalLayoutGroup>();
-        if (group == null)
-        {
-            Debug.LogError($"Canvas '{canvasId}' does not contain a layout group.");
-            return;
-        }
-
-        var groupRectTransform = group.GetComponent<RectTransform>();
         var elementRectTransform = element.GetComponent<RectTransform>();
-
-        elementRectTransform.SetParent(groupRectTransform, worldPositionStays:false);
-
-        _elements[canvasId][uid] = element;
+        elementRectTransform.SetParent(data.transform, worldPositionStays:false);
+        data.content[uid] = element;
     }
 
     public void ClearCanvas(string canvasId, ref Dictionary<string, GameObject> elementSet)
     {
-        List<string> deletedKeys = new();
-        foreach (var pair in _elements[canvasId])
+        CanvasData data;
+        if (!_canvases.TryGetValue(canvasId, out data))
         {
-            Destroy(pair.Value);
+            Debug.LogError($"Canvas '{canvasId}' not found.");
+            return;
+        }
+
+        List<string> deletedKeys = new();
+        foreach (var pair in data.content)
+        {
+            GameObject.Destroy(pair.Value);
             deletedKeys.Add(pair.Key);
         }
         foreach (var deletedKey in deletedKeys)
         {
             // TODO: Refactor key handling.
-            _elements.Remove(deletedKey);
+            data.content.Remove(deletedKey);
             elementSet.Remove(deletedKey);
         }
     }
@@ -93,22 +186,21 @@ public class MainCanvas : MonoBehaviour
 
     public void MoveCanvas(string canvasId, Vector3 position, Camera _uiCamera)
     {
-        Canvas canvas;
-        if (!_canvases.TryGetValue(canvasId, out canvas))
+        CanvasData data;
+        if (!_canvases.TryGetValue(canvasId, out data))
         {
             Debug.LogError($"Canvas '{canvasId}' not found.");
             return;
         }
 
-        var rt = canvas.GetComponent<RectTransform>();
         var screenPos = _uiCamera.WorldToViewportPoint(position);
-        rt.anchorMin = screenPos;
-        rt.anchorMax = screenPos;
+        data.transform.anchorMin = screenPos;
+        data.transform.anchorMax = screenPos;
     }
 
     public void Update()
     {
         // TODO: Refactor
-        _mainCanvas.GetComponent<Canvas>().enabled = !LoadProgressTracker.Instance._modalDialogueShown;
+        _root.GetComponent<Canvas>().enabled = !LoadProgressTracker.Instance._modalDialogueShown;
     }
 }
