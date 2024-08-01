@@ -166,5 +166,20 @@ public class GuiDrawer : IKeyframeMessageConsumer
         }
     }
 
-    public void Update() {}
+    public void Update()
+    {
+        // TODO: Refactor
+        if (LoadProgressTracker.Instance._applicationTerminated)
+        {
+            // Disable all items in the pools.
+            for (int i = 0; i < _activeCircleCount; ++i)
+            {
+                _circlePool[i].enabled = false;
+            }
+            for (int i = 0; i < _activeLineCount; ++i)
+            {
+                _linePool[i].enabled = false;
+            }
+        }
+    }
 }
