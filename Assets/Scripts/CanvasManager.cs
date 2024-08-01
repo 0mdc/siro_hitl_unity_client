@@ -44,53 +44,60 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
 
     public void ProcessMessage(Message message)
     {
-        // Delete UI elements first.
-        var clearCanvases = message.clearCanvases;
-        if (clearCanvases != null)
-        {
-            foreach (string canvasKey in clearCanvases)
-            {
-                _mainCanvas.ClearCanvas(canvasKey, ref _uiElements);
-            }
-        }
-
-        // Add new UI elements.
         var uiUpdates = message.uiUpdates;
         if (uiUpdates != null)
         {
-            foreach (var uiUpdate in uiUpdates)
+            foreach (var pair in uiUpdates)
             {
-                AddUIElement(uiUpdate);
+                ProcessCanvasUpdate(pair.Key, pair.Value);
             }
         }
 
         // Move canvases.
+        /*
         var canvasPositions = message.canvasPositions;
         if (canvasPositions != null)
         {
             foreach (var pair in canvasPositions)
             {
-                // TODO: Currently, only 'floating' can be moved.
-                if (pair.Key != "floating") continue;
-
                 var position = CoordinateSystem.ToUnityVector(pair.Value);
                 _mainCanvas.MoveCanvas(pair.Key, position, _uiCamera);
             }
         }
+        */
     }
 
-    public void AddUIElement(UIUpdate uiUpdate)
+    private void ProcessCanvasUpdate(string canvasUid, UICanvasUpdate canvasUpdate)
     {
-        string canvasKey = uiUpdate.canvasUid;
+        if (canvasUpdate.clear)
+        {
+            _mainCanvas.ClearCanvas(canvasUid, ref _uiElements);
+        }
 
-        _mainCanvas.UpdateCanvas(uiUpdate.canvas);
-        AddUIElement(canvasKey, uiUpdate.button);
-        AddUIElement(canvasKey, uiUpdate.toggle);
-        AddUIElement(canvasKey, uiUpdate.label);
-        AddUIElement(canvasKey, uiUpdate.listItem);
+        if (canvasUpdate.elements != null)
+        {
+            foreach (var element in canvasUpdate.elements)
+            {
+                CreateOrUpdateUIElement(canvasUid, element);
+            }
+        }
     }
 
-    public void AddUIElement(string canvasKey, UIElement uiElement)
+    public void CreateOrUpdateUIElement(string canvasUid, UIElementUpdate uiUpdate)
+    {
+        string canvasKey = canvasUid;
+
+        // Update canvas properties.
+        _mainCanvas.UpdateCanvas(canvasUid, uiUpdate.canvasProperties);
+
+        // Process elements by type.
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.button);
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.toggle);
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.label);
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.listItem);
+    }
+
+    public void CreateOrUpdateUIElement(string canvasKey, UIElement uiElement)
     {
         if (uiElement == null)
         {
@@ -176,12 +183,10 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
             }
             else
             {
-                AddUIElement(new()
+                CreateOrUpdateUIElement("tooltip", new UIElementUpdate
                 {
-                    canvasUid="tooltip",
-                    canvas=new()
+                    canvasProperties=new()
                     {
-                        uid="tooltip",
                         padding=12,
                         backgroundColor=new float[]{0.5f, 0.5f, 0.5f, 1.0f} 
                     },

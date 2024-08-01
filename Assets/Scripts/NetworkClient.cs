@@ -380,9 +380,8 @@ public class NetworkClient : IUpdatable
         if (_canvasManager != null)
         {
             _canvasManager.ClearAllCanvases();
-            _canvasManager.AddUIElement(new()
+            _canvasManager.CreateOrUpdateUIElement("top_left", new UIElementUpdate
             {
-                canvasUid="top_left",
                 label=new()
                 {
                     uid="disconnect_status",

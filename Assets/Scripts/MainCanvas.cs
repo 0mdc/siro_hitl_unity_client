@@ -156,12 +156,12 @@ public class MainCanvas : IUpdatable
         return new CanvasData(uid, canvas, rect, group, raycaster, background);
     }
 
-    public void AddUIElement(string canvasId, string uid, GameObject element)
+    public void AddUIElement(string canvasUid, string uid, GameObject element)
     {
         CanvasData data;
-        if (!_canvases.TryGetValue(canvasId, out data))
+        if (!_canvases.TryGetValue(canvasUid, out data))
         {
-            Debug.LogError($"Canvas '{canvasId}' not found.");
+            Debug.LogError($"Canvas '{canvasUid}' not found.");
             return;
         }
 
@@ -172,12 +172,12 @@ public class MainCanvas : IUpdatable
         data.canvas.enabled = true;
     }
 
-    public void ClearCanvas(string canvasId, ref Dictionary<string, GameObject> elementSet)
+    public void ClearCanvas(string canvasUid, ref Dictionary<string, GameObject> elementSet)
     {
         CanvasData data;
-        if (!_canvases.TryGetValue(canvasId, out data))
+        if (!_canvases.TryGetValue(canvasUid, out data))
         {
-            Debug.LogError($"Canvas '{canvasId}' not found.");
+            Debug.LogError($"Canvas '{canvasUid}' not found.");
             return;
         }
 
@@ -201,18 +201,18 @@ public class MainCanvas : IUpdatable
 
     public void ClearAllCanvases(ref Dictionary<string, GameObject> elementSet)
     {
-        foreach (string canvasId in _canvases.Keys)
+        foreach (string canvasUid in _canvases.Keys)
         {
-            ClearCanvas(canvasId, ref elementSet);
+            ClearCanvas(canvasUid, ref elementSet);
         }
     }
 
-    public void MoveCanvas(string canvasId, Vector3 worldPosition, Camera _uiCamera)
+    public void MoveCanvas(string canvasUid, Vector3 worldPosition, Camera _uiCamera)
     {
         CanvasData data;
-        if (!_canvases.TryGetValue(canvasId, out data))
+        if (!_canvases.TryGetValue(canvasUid, out data))
         {
-            Debug.LogError($"Canvas '{canvasId}' not found.");
+            Debug.LogError($"Canvas '{canvasUid}' not found.");
             return;
         }
 
@@ -221,19 +221,19 @@ public class MainCanvas : IUpdatable
         data.transform.anchorMax = screenPos;
     }
 
-    public void MoveCanvas(string canvasId, Vector2 position)
+    public void MoveCanvas(string canvasUid, Vector2 position)
     {
         CanvasData data;
-        if (!_canvases.TryGetValue(canvasId, out data))
+        if (!_canvases.TryGetValue(canvasUid, out data))
         {
-            Debug.LogError($"Canvas '{canvasId}' not found.");
+            Debug.LogError($"Canvas '{canvasUid}' not found.");
             return;
         }
 
         data.transform.localPosition = position;
     }
 
-    public void UpdateCanvas(UICanvas update)
+    public void UpdateCanvas(string canvasUid, UICanvas update)
     {
         if (update == null)
         {
@@ -241,9 +241,9 @@ public class MainCanvas : IUpdatable
         }
 
         CanvasData data;
-        if (!_canvases.TryGetValue(update.uid, out data))
+        if (!_canvases.TryGetValue(canvasUid, out data))
         {
-            Debug.LogError($"Canvas '{update.uid}' not found.");
+            Debug.LogError($"Canvas '{canvasUid}' not found.");
             return;
         }
 

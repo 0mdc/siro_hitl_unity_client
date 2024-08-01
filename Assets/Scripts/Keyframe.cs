@@ -131,10 +131,7 @@ public class Message
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
     public Dialog dialog;
-
-    public List<UIUpdate> uiUpdates;
-    public List<string> clearCanvases;
-    public Dictionary<string, List<float>> canvasPositions;
+    public Dictionary<string, UICanvasUpdate> uiUpdates;
 }
 
 [Serializable]
@@ -214,7 +211,6 @@ public class UIElement
 [Serializable]
 public class UICanvas
 {
-    public string uid;
     public int padding;
     public float[] backgroundColor;
 }
@@ -260,10 +256,16 @@ public class UIButton : UIElement
 }
 
 [Serializable]
-public class UIUpdate
+public class UICanvasUpdate
 {
-    public string canvasUid;
-    public UICanvas canvas;
+    public bool clear;
+    public List<UIElementUpdate> elements;
+}
+
+[Serializable]
+public class UIElementUpdate
+{
+    public UICanvas canvasProperties;
     public UILabel label;
     public UIToggle toggle;
     public UIButton button;
