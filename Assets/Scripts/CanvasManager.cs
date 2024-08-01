@@ -95,6 +95,8 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
         CreateOrUpdateUIElement(canvasKey, uiUpdate.toggle);
         CreateOrUpdateUIElement(canvasKey, uiUpdate.label);
         CreateOrUpdateUIElement(canvasKey, uiUpdate.listItem);
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.separator);
+        CreateOrUpdateUIElement(canvasKey, uiUpdate.spacer);
     }
 
     public void CreateOrUpdateUIElement(string canvasKey, UIElement uiElement)
@@ -127,6 +129,10 @@ public class CanvasManager : IKeyframeMessageConsumer, IClientStateProducer
                 return UIElementListItem.Create(_uiPrefabs.ListItemPrefab, this, listItem).gameObject;
             case UIToggle toggle:
                 return UIElementToggle.Create(_uiPrefabs.TogglePrefab, this, toggle).gameObject;
+            case UISeparator separator:
+                return UIElementSeparator.Create(_uiPrefabs.SeparatorPrefab, this, separator).gameObject;
+            case UISpacer spacer:
+                return UIElementSpacer.Create(_uiPrefabs.SpacerPrefab, this, spacer).gameObject;
             default:
                 return new GameObject(uiElement.uid.ToString(), typeof(RectTransform));
         }

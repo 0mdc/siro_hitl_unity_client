@@ -11,4 +11,6 @@ public class UIPrefabs : ScriptableObject
     public UIElementLabel LabelPrefab;
     public UIElementListItem ListItemPrefab;
     public UIElementToggle TogglePrefab;
+    public UIElementSeparator SeparatorPrefab;
+    public UIElementSpacer SpacerPrefab;
 }

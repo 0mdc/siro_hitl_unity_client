@@ -17,3 +17,5 @@ MonoBehaviour:
   LabelPrefab: {fileID: 7497251443271363981, guid: d8f4927bb69e62280a6792aeec3b411e, type: 3}
   ListItemPrefab: {fileID: 2742773768067938287, guid: b4acdb6bdd19f671b90f17128190d4ee, type: 3}
   TogglePrefab: {fileID: 7824554693241946745, guid: 542cdd0dcea1c8e6ca9c26bf6ee2b700, type: 3}
+  SeparatorPrefab: {fileID: 5510205406450948860, guid: 32bf524e1bfbadb05a470167d2f63a75, type: 3}
+  SpacerPrefab: {fileID: -4464485475763664064, guid: 6389935dbcf44de47b84fc16955fde65, type: 3}

@@ -256,6 +256,15 @@ public class UIButton : UIElement
 }
 
 [Serializable]
+public class UISeparator : UIElement {}
+
+[Serializable]
+public class UISpacer : UIElement
+{
+    public float size;
+}
+
+[Serializable]
 public class UICanvasUpdate
 {
     public bool clear;
@@ -270,4 +279,6 @@ public class UIElementUpdate
     public UIToggle toggle;
     public UIButton button;
     public UIListItem listItem;
+    public UISeparator separator;
+    public UISpacer spacer;
 }
