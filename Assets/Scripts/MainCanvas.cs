@@ -94,8 +94,11 @@ public class MainCanvas : IUpdatable
         canvas.vertexColorAlwaysGammaSpace = true;
         
         var canvasScaler = container.AddComponent<CanvasScaler>();
-        canvasScaler.scaleFactor = 1f;
-        canvasScaler.referencePixelsPerUnit = 100f;
+        canvasScaler.uiScaleMode = CanvasScaler.ScaleMode.ConstantPhysicalSize;
+        canvasScaler.physicalUnit = CanvasScaler.Unit.Points;
+        canvasScaler.defaultSpriteDPI = 96;
+        canvasScaler.fallbackScreenDPI = 96;
+        canvasScaler.referencePixelsPerUnit = 100;
 
         container.AddComponent<GraphicRaycaster>();
 
