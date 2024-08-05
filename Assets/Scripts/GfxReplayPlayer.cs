@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityFx.Outline;
 
 public class GfxReplayPlayer : IUpdatable
 {
@@ -332,19 +333,27 @@ public class GfxReplayPlayer : IUpdatable
             }
         }
 
-        // Process selection.
-        if (_outlineLayers != null)
+        // Process object outlines.
+        _outlineLayers.Clear();
+        if (keyframe.message?.outlines != null)
         {
-            _outlineLayers[0].Clear();
-            
-            if (keyframe.message?.selectedObjects != null)
+            var outlines = keyframe.message.outlines;
+            outlines.Sort((x, y) => x.priority.CompareTo(y.priority));
+            foreach (var outline in outlines)
             {
-                foreach (int objectId in keyframe.message.selectedObjects)
+                OutlineLayer layer = _outlineLayers.AddLayer();
+                var color = outline.color;
+                layer.OutlineColor = new Color(color[0], color[1], color[2], color[3]);
+                layer.OutlineWidth = (int)outline.width;
+                layer.MergeLayerObjects = true;
+                layer.OutlineRenderMode = OutlineRenderFlags.Blurred;
+                
+                foreach (int objectId in outline.objectIds)
                 {
                     if (_objectIdToInstanceKey.TryGetValue(objectId, out int key))
                     {
                         GameObject obj = _instanceDictionary[key].gameObject;
-                        _outlineLayers[0].Add(obj);
+                        layer.Add(obj);
                     }
                 }
             }

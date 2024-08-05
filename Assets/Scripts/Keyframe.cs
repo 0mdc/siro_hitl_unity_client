@@ -130,7 +130,7 @@ public class Message
     public int serverKeyframeId;
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
-    public List<int> selectedObjects;
+    public List<ObjectOutline> outlines;
     public Dialog dialog;
     public Dictionary<string, UICanvasUpdate> uiUpdates;
 }
@@ -146,12 +146,22 @@ public class Circle
     public int[] c; // Color, RGBA, 0-255
 }
 
+[Serializable]
 public class Line
 {
     // Note: short variable names and values to reduce json data size.
     public float[] a; // Position
     public float[] b; // Position
     public int[] c; // Color, RGBA, 0-255
+}
+
+[Serializable]
+public class ObjectOutline
+{
+    public int priority;
+    public float[] color;
+    public float width;
+    public List<int> objectIds;
 }
 
 [Serializable]

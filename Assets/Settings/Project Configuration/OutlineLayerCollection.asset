@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _layers:
   - _settings:
-      _outlineSettings: {fileID: 11400000, guid: f9dfe772e64ba8f9f988216095d80d5b, type: 2}
-      _outlineColor: {r: 0, g: 1, b: 1, a: 1}
+      _outlineSettings: {fileID: 0}
+      _outlineColor: {r: 0.1, g: 0.8, b: 0.8, a: 1}
       _outlineWidth: 4
       _outlineIntensity: 2
       _outlineAlphaCutoff: 0.9
       _outlineMode: 1
-    _name: Selection
+    _name: 
     _enabled: 1
     _mergeLayerObjects: 1
   _ignoreLayerMask: 0
