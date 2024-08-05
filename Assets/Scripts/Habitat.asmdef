@@ -12,7 +12,9 @@
         "Unity.XR.Management",
         "Unity.Addressables",
         "Unity.ResourceManager",
-        "Unity.RenderPipelines.Universal.Runtime"
+        "Unity.RenderPipelines.Universal.Runtime",
+        "UnityFx.Outline.URP",
+        "UnityFx.Outline"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

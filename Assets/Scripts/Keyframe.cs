@@ -130,6 +130,7 @@ public class Message
     public int serverKeyframeId;
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
+    public List<int> selectedObjects;
     public Dialog dialog;
     public Dictionary<string, UICanvasUpdate> uiUpdates;
 }

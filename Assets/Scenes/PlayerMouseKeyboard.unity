@@ -392,6 +392,7 @@ MonoBehaviour:
   _appConfig: {fileID: 11400000, guid: 5aca4711f6ee3f6faa47e80cb8b6abee, type: 2}
   _offlineIcon: {fileID: 683323228}
   _uiPrefabs: {fileID: 11400000, guid: 4a197baea83913847ad377e0699f734e, type: 2}
+  _outlineLayers: {fileID: 11400000, guid: 4df957a2379290a75ace24fa31ae7d24, type: 2}
 --- !u!1001 &765344029
 PrefabInstance:
   m_ObjectHideFlags: 0

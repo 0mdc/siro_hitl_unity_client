@@ -27,11 +27,13 @@ public class GfxReplayPlayer : IUpdatable
     CoroutineContainer _coroutines;
     IKeyframeMessageConsumer[] _messageConsumers;
     private float _keyframeInterval = 0.1f;  // assume 10Hz, but see also SetKeyframeRate
+    UnityFx.Outline.OutlineLayerCollection _outlineLayers;
 
-    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers)
+    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers, UnityFx.Outline.OutlineLayerCollection outlineLayers = null)
     {
         _messageConsumers = messageConsumers;
         _coroutines = CoroutineContainer.Create("GfxReplayPlayer");
+        _outlineLayers = outlineLayers;
     }
 
     public void SetKeyframeRate(float rate)
@@ -325,6 +327,24 @@ public class GfxReplayPlayer : IUpdatable
                     else
                     {
                         Debug.Log($"Instance with object ID {pair.Key} not found.");
+                    }
+                }
+            }
+        }
+
+        // Process selection.
+        if (_outlineLayers != null)
+        {
+            _outlineLayers[0].Clear();
+            
+            if (keyframe.message?.selectedObjects != null)
+            {
+                foreach (int objectId in keyframe.message.selectedObjects)
+                {
+                    if (_objectIdToInstanceKey.TryGetValue(objectId, out int key))
+                    {
+                        GameObject obj = _instanceDictionary[key].gameObject;
+                        _outlineLayers[0].Add(obj);
                     }
                 }
             }
