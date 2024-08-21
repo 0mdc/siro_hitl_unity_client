@@ -126,7 +126,7 @@ public class Message
     // nonindexed triangle list, serialized as a flat list of floats
     public List<float> navmeshVertices;
     public List<TextMessage> texts;
-    public AbsTransform camera;
+    public Dictionary<int, AbsTransform> cameras;
     public int serverKeyframeId;
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
