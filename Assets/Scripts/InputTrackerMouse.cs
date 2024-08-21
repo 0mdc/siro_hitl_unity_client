@@ -39,12 +39,29 @@ public class InputTrackerMouse : IClientStateProducer
             return;
         }
 
-        bool hoveringUI = IsMouseHoveringUI();
+        // Check whether the user is clicking the UI.
+        // UI mouse events are not relayed to the server.
+        var pointerEventData = new PointerEventData(EventSystem.current)
+        {
+            position = Input.mousePosition
+        };
+        List<RaycastResult> results = new();
+        EventSystem.current.RaycastAll(pointerEventData, results);
+        bool clickingUI = false;
+        foreach (var result in results)
+        {
+            bool isButton = result.gameObject.GetComponent<UnityEngine.UI.Button>() != null;
+            if (isButton)
+            {
+                clickingUI = true;
+                break;
+            }
+        }
 
         // Record all mouse actions that occurred OnEndFrame() call.
         // Note that multiple Unity frames may occur during that time.
         int mouseIndex = 0;
-        if (!hoveringUI)
+        if (!clickingUI)
         {
             for (KeyCode key = KeyCode.Mouse0; key <= KeyCode.Mouse2; key++, mouseIndex++)
             {
@@ -73,38 +90,6 @@ public class InputTrackerMouse : IClientStateProducer
             _mousePositionDelta += mousePosition - _lastMousePosition;
             _lastMousePosition = mousePosition;
         }
-    }
-
-    /// <summary>
-    /// Returns whether the mouse is hovering a UI element.
-    /// </summary>
-    public bool IsMouseHoveringUI()
-    {
-        EventSystem eventSystem = EventSystem.current;
-        if (eventSystem == null)
-        {
-            return false;
-        }
-
-        // TODO: Tech debt: The logic currently only checks for buttons components.
-        //       Reconfigure the UI such as only the desired objects are raycastable.
-        var pointerEventData = new PointerEventData(EventSystem.current)
-        {
-            position = Input.mousePosition
-        };
-        List<RaycastResult> results = new();
-        eventSystem.RaycastAll(pointerEventData, results);
-        bool clickingUI = false;
-        foreach (var result in results)
-        {
-            bool isButton = result.gameObject.GetComponent<UnityEngine.UI.Button>() != null;
-            if (isButton)
-            {
-                clickingUI = true;
-                break;
-            }
-        }
-        return clickingUI;
     }
 
     public void OnEndFrame()

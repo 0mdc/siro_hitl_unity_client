@@ -17,6 +17,8 @@
     "com.unity.xr.management": "4.4.0",
     "com.unity.xr.oculus": "4.0.0",
     "com.unity.xr.openxr": "1.8.2",
+    "com.unityfx.outline": "UnityFx.Outline",
+    "com.unityfx.outline.urp": "UnityFx.Outline.URP",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.androidjni": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
