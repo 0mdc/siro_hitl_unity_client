@@ -130,6 +130,8 @@ public class Message
     public int serverKeyframeId;
     public Dictionary<int, ObjectProperties> objects;
     public Dictionary<int, ViewportProperties> viewports;
+    public List<ObjectOutline> outlines;
+    public List<int> selectedObjects;
     public Dialog dialog;
 }
 
@@ -144,12 +146,22 @@ public class Circle
     public int[] c; // Color, RGBA, 0-255
 }
 
+[Serializable]
 public class Line
 {
     // Note: short variable names and values to reduce json data size.
     public float[] a; // Position
     public float[] b; // Position
     public int[] c; // Color, RGBA, 0-255
+}
+
+[Serializable]
+public class ObjectOutline
+{
+    public int priority;
+    public float[] color;
+    public float width;
+    public List<int> objectIds;
 }
 
 [Serializable]
@@ -175,6 +187,7 @@ public class ViewportProperties
     public AbsTransform camera;
 }
 
+[Serializable]
 public class Dialog
 {
     public string title;
