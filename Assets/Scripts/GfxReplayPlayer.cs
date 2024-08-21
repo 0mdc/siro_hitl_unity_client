@@ -230,6 +230,30 @@ public class GfxReplayPlayer : IUpdatable
             }
         }
 
+        // Handle Deletions
+        if (keyframe.deletions != null)
+        {
+            foreach (var key in keyframe.deletions)
+            {
+                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance instance))
+                {
+                    if (instance.rigId != Constants.ID_UNDEFINED)
+                    {
+                        _skinnedMeshes.Remove(instance.rigId);
+                    }
+
+                    if (_objectIdToInstanceKey.ContainsKey(instance.objectId))
+                    {
+                        _objectIdToInstanceKey.Remove(instance.objectId);
+                    }
+
+                    _instanceDictionary[key].Destroy();
+                    _instanceDictionary.Remove(key);
+                }
+            }
+            _coroutines.StartCoroutine(ReleaseUnusedMemory());
+        }
+
         if (keyframe.metadata != null)
         {
             foreach (var metadata in keyframe.metadata)
@@ -269,30 +293,6 @@ public class GfxReplayPlayer : IUpdatable
         }
 
         ProcessStateUpdates(keyframe);
-
-        // Handle Deletions
-        if (keyframe.deletions != null)
-        {
-            foreach (var key in keyframe.deletions)
-            {
-                if (_instanceDictionary.TryGetValue(key, out GfxReplayInstance instance))
-                {
-                    if (instance.rigId != Constants.ID_UNDEFINED)
-                    {
-                        _skinnedMeshes.Remove(instance.rigId);
-                    }
-
-                    if (_objectIdToInstanceKey.ContainsKey(instance.objectId))
-                    {
-                        _objectIdToInstanceKey.Remove(instance.objectId);
-                    }
-
-                    _instanceDictionary[key].Destroy();
-                    _instanceDictionary.Remove(key);
-                }
-            }
-            _coroutines.StartCoroutine(ReleaseUnusedMemory());
-        }
 
         // Process object properties.
         if (keyframe.message?.objects != null)
