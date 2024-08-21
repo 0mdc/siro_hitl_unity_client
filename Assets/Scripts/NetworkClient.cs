@@ -68,6 +68,10 @@ public class NetworkClient : IUpdatable
     NetworkClientGUI _textRenderer;
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
 
+    // The client will try to connect until a successful session has started.
+    // After the first successful connection, the client stops trying to reconnect.
+    bool _tryReconnecting = true;
+
     // Used to handle data that is only meant to be sent during the first transmission.
     private bool _firstTransmission = true;
 
@@ -161,7 +165,7 @@ public class NetworkClient : IUpdatable
     {
         while (true)
         {
-            if (mainWebSocket == null)
+            if (mainWebSocket == null && _tryReconnecting)
             {
                 if (_delayReconnect > 0.0f)
                 {
@@ -183,6 +187,12 @@ public class NetworkClient : IUpdatable
                 if (currentServerIndex >= _serverURLs.Count)
                 {
                     currentServerIndex = 0; // Reset to try again from the beginning.
+                }
+
+                if (!_tryReconnecting)
+                {
+                    yield return new WaitForSeconds(1);
+                    continue;
                 }
 
                 string url = _serverURLs[currentServerIndex];
@@ -222,6 +232,13 @@ public class NetworkClient : IUpdatable
                         _disconnectReason = "Unable to reach server!";
                     }
                 }
+            }
+            else if (mainWebSocket == null && !_tryReconnecting)
+            {
+                // If disconnected after the session has started, do not reconnect.
+                SetDisconnectStatus("Session ended.");
+                _player.DeleteAllInstancesFromKeyframes();
+                yield break;
             }
             else
             {
@@ -293,6 +310,9 @@ public class NetworkClient : IUpdatable
             if (_recentConnectionMessageCount == 0) {
                 // Delete all old instances upon receiving the first keyframe.
                 _player.DeleteAllInstancesFromKeyframes();
+
+                // We stop trying to reconnect once a successful two-way connection has been established.
+                _tryReconnecting = false;
             }
 
             string message = System.Text.Encoding.UTF8.GetString(bytes);
