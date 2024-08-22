@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Assertions;
+using UnityFx.Outline;
 
 public class GfxReplayPlayer : IUpdatable
 {
@@ -27,11 +28,13 @@ public class GfxReplayPlayer : IUpdatable
     CoroutineContainer _coroutines;
     IKeyframeMessageConsumer[] _messageConsumers;
     private float _keyframeInterval = 0.1f;  // assume 10Hz, but see also SetKeyframeRate
+    UnityFx.Outline.OutlineLayerCollection _outlineLayers;
 
-    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers)
+    public GfxReplayPlayer(IKeyframeMessageConsumer[] messageConsumers, UnityFx.Outline.OutlineLayerCollection outlineLayers = null)
     {
         _messageConsumers = messageConsumers;
         _coroutines = CoroutineContainer.Create("GfxReplayPlayer");
+        _outlineLayers = outlineLayers;
     }
 
     public void SetKeyframeRate(float rate)
@@ -325,6 +328,32 @@ public class GfxReplayPlayer : IUpdatable
                     else
                     {
                         Debug.Log($"Instance with object ID {pair.Key} not found.");
+                    }
+                }
+            }
+        }
+
+        // Process object outlines.
+        _outlineLayers.Clear();
+        if (keyframe.message?.outlines != null)
+        {
+            var outlines = keyframe.message.outlines;
+            outlines.Sort((x, y) => x.priority.CompareTo(y.priority));
+            foreach (var outline in outlines)
+            {
+                OutlineLayer layer = _outlineLayers.AddLayer();
+                var color = outline.color;
+                layer.OutlineColor = new Color(color[0], color[1], color[2], color[3]);
+                layer.OutlineWidth = (int)outline.width;
+                layer.MergeLayerObjects = true;
+                layer.OutlineRenderMode = OutlineRenderFlags.Blurred;
+                
+                foreach (int objectId in outline.objectIds)
+                {
+                    if (_objectIdToInstanceKey.TryGetValue(objectId, out int key))
+                    {
+                        GameObject obj = _instanceDictionary[key].gameObject;
+                        layer.Add(obj);
                     }
                 }
             }

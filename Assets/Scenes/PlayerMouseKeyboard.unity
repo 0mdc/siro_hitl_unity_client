@@ -391,6 +391,7 @@ MonoBehaviour:
   _camera: {fileID: 389742605}
   _appConfig: {fileID: 11400000, guid: 5aca4711f6ee3f6faa47e80cb8b6abee, type: 2}
   _offlineIcon: {fileID: 683323228}
+  _outlineLayers: {fileID: 11400000, guid: 4df957a2379290a75ace24fa31ae7d24, type: 2}
 --- !u!1001 &712471222
 PrefabInstance:
   m_ObjectHideFlags: 0

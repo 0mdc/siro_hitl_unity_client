@@ -26,6 +26,9 @@ public class AppMouseKeyboard : MonoBehaviour
     [Tooltip("Icon that is displayed when connection is lost.")]
     [SerializeField] private GameObject _offlineIcon;
 
+    [Tooltip("External plugin for rendering outlines.")]
+    [SerializeField] private UnityFx.Outline.OutlineLayerCollection _outlineLayers;
+
     // IKeyframeMessageConsumers
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
     GuiDrawer _guiDrawer;
@@ -84,7 +87,7 @@ public class AppMouseKeyboard : MonoBehaviour
 
         // Initialize application state.
         _configLoader = new ConfigLoader(_defaultServerLocations);
-        _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers);
+        _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers, _outlineLayers);
         _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers, _serverKeyframeIdHandler);
         _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_offlineIcon, _camera);
         _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
