@@ -1,4 +1,3 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -43,6 +42,16 @@ public class ViewportHandler : IKeyframeMessageConsumer
     {
         Dictionary<int, ViewportProperties> viewportUpdates = message.viewports;
 
+        // Update viewport properties.
+        if (viewportUpdates != null)
+        {
+            foreach (var pair in viewportUpdates)
+            {
+                UpdateViewportProperties(pair.Key, pair.Value);
+            }
+        }
+
+        // Disable all cameras except the main viewport camera.
         foreach (var pair in _viewports)
         {
             if (pair.Key != -1)
@@ -52,62 +61,75 @@ public class ViewportHandler : IKeyframeMessageConsumer
             }
         }
 
-        if (viewportUpdates == null)
+        // Update camera transforms.
+        // Only enable cameras that were modified.
+        Dictionary<int, AbsTransform> cameraUpdates = message.cameras;        
+        if (cameraUpdates != null)
         {
-            return;
-        }
-        foreach (var pair in viewportUpdates)
-        {
-            int key = pair.Key;
-            if (!_viewports.ContainsKey(key))
+            foreach (var pair in cameraUpdates)
             {
-                // Clone the main camera.
-                GameObject container = GameObject.Instantiate(_mainCamera.gameObject);
-                container.name = $"Viewport {key}";
-                Camera newCamera = container.GetComponent<Camera>();
-                newCamera.tag = "Untagged"; // Remove MainCamera tag.
-                newCamera.GetComponent<AudioListener>().enabled = false; // Disable audio.
-                _viewports[key] = new Viewport()
-                {
-                    camera = newCamera
-                };
-            }
-
-            ViewportProperties properties = pair.Value;
-            Viewport viewport = _viewports[key];
-            Camera camera = viewport.camera;
-
-            if (key != -1)
-            {
-                camera.enabled = properties.enabled.GetValueOrDefault();
-                if (camera.enabled)
-                {
-                    if (properties.camera?.translation?.Count == 3 && properties.camera?.rotation?.Count == 4) {
-                        camera.transform.position = CoordinateSystem.ToUnityVector(properties.camera.translation);
-                        camera.transform.rotation = CoordinateSystem.ToUnityQuaternion(properties.camera.rotation);
-                    }
+                int key = pair.Key;
+                AbsTransform cameraUpdate = pair.Value;
+                Viewport viewport = _viewports[key];
+                Camera camera = viewport.camera;
+                camera.enabled = true;
+                if (cameraUpdate.translation?.Count == 3 && cameraUpdate?.rotation?.Count == 4) {
+                    camera.transform.position = CoordinateSystem.ToUnityVector(cameraUpdate.translation);
+                    camera.transform.rotation = CoordinateSystem.ToUnityQuaternion(cameraUpdate.rotation);
                 }
             }
-
-            // Rect format: X, Y, Width, Height.
-            // The values are in normalized screen coordinates (between 0 and 1).
-            if (properties.rect?.Length == 4)
-            {
-                var rect = properties.rect;
-                camera.rect = new Rect(rect[0], rect[1], rect[2], rect[3]);
-            }
-
-            if (properties.layers != null)
-            {
-                int mask = DEFAULT_LAYERS;
-                foreach (int layer in properties.layers)
-                {
-                    int layerIndex = FIRST_LAYER_INDEX + layer;
-                    mask |= 1 << layerIndex;
-                }
-                camera.cullingMask = mask;
-            }
         }
+    }
+
+    private void UpdateViewportProperties(int key, ViewportProperties properties)
+    {
+        // If this is a new viewport, create it.
+        Viewport viewport;
+        if (!_viewports.ContainsKey(key))
+        {
+            viewport = CreateViewport(key);
+        }
+        else
+        {
+            viewport = _viewports[key];
+        }
+
+        // Rect format: X, Y, Width, Height.
+        // The values are in normalized screen coordinates (between 0 and 1).
+        Camera camera = viewport.camera;
+        if (properties.rect?.Length == 4)
+        {
+            var rect = properties.rect;
+            camera.rect = new Rect(rect[0], rect[1], rect[2], rect[3]);
+        }
+
+        // Set camera visibility layers.
+        if (properties.layers != null)
+        {
+            int mask = DEFAULT_LAYERS;
+            foreach (int layer in properties.layers)
+            {
+                int layerIndex = FIRST_LAYER_INDEX + layer;
+                mask |= 1 << layerIndex;
+            }
+            camera.cullingMask = mask;
+        }
+    }
+
+    private Viewport CreateViewport(int key)
+    {
+        // Clone the main camera.
+        GameObject container = GameObject.Instantiate(_mainCamera.gameObject);
+        container.name = $"Viewport {key}";
+        Camera newCamera = container.GetComponent<Camera>();
+        newCamera.tag = "Untagged"; // Remove MainCamera tag.
+        newCamera.GetComponent<AudioListener>().enabled = false; // Disable audio.
+        Viewport newViewport = new()
+        {
+            camera = newCamera
+        };
+        _viewports[key] = newViewport;
+        return newViewport;
     }
 
     void IUpdatable.Update()

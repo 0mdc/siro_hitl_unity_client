@@ -30,7 +30,6 @@ public class AppMouseKeyboard : MonoBehaviour
     ServerKeyframeIdHandler _serverKeyframeIdHandler;
     GuiDrawer _guiDrawer;
     LoadingEffectHandler _loadingEffectHandler;
-    CameraTransformHandler _cameraTransformHandler;
     TextRenderer _textRenderer;
     LoadingScreenOverlay _loadingScreenOverlay;
     ViewportHandler _viewportHandler;
@@ -58,7 +57,6 @@ public class AppMouseKeyboard : MonoBehaviour
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
         _guiDrawer = new GuiDrawer(_appConfig, _camera);
         _loadingEffectHandler = new LoadingEffectHandler();
-        _cameraTransformHandler = new CameraTransformHandler(_camera);
         _textRenderer = new TextRenderer();
         _loadingScreenOverlay = new LoadingScreenOverlay(_camera);
         _viewportHandler = new ViewportHandler(_camera);
@@ -68,7 +66,6 @@ public class AppMouseKeyboard : MonoBehaviour
             _serverKeyframeIdHandler,
             _guiDrawer,
             _loadingEffectHandler,
-            _cameraTransformHandler,
             _textRenderer,
             _loadingScreenOverlay,
             _viewportHandler,
