@@ -19,6 +19,8 @@ public class KeyframeWrapper
     public KeyframeData[] keyframes;
 }
 
+# region Keyframe
+
 [Serializable]
 public class KeyframeData
 {
@@ -116,6 +118,10 @@ public class RigUpdate
     public List<BoneTransform> pose;
 }
 
+#endregion Keyframe
+
+#region Message
+
 [Serializable]
 public class Message
 {
@@ -132,7 +138,8 @@ public class Message
     public Dictionary<int, ViewportProperties> viewports;
     public List<ObjectOutline> outlines;
     public List<int> selectedObjects;
-    public Dialog dialog;
+    public Dialog dialog;  // TODO: Legacy UI
+    public Dictionary<string, UICanvasUpdate> uiUpdates;
 }
 
 [Serializable]
@@ -211,3 +218,90 @@ public class Textbox
     public string text;
     public bool enabled;
 }
+
+#endregion Message
+
+#region UI Elements
+
+[Serializable]
+public class UIElement
+{
+    public string uid;
+}
+
+[Serializable]
+public class UICanvas
+{
+    public int padding;
+    public float[] backgroundColor;
+}
+
+[Serializable]
+public class UILabel : UIElement
+{
+    public string text;
+    public int horizontalAlignment;
+    public int fontSize;
+    public bool bold;
+    public float[] color;
+}
+
+
+[Serializable]
+public class UIListItem : UIElement
+{
+    public bool enabled;
+    public string textLeft;
+    public string textRight;
+    public int fontSize;
+    public float[] color;
+}
+
+[Serializable]
+public class UIToggle : UIElement
+{
+    public bool enabled;
+    public bool toggled;
+    public string textFalse;
+    public string textTrue;
+    public float[] color;
+    public string tooltip;
+}
+
+[Serializable]
+public class UIButton : UIElement
+{
+    public bool enabled;
+    public string text;
+    public float[] color;
+}
+
+[Serializable]
+public class UISeparator : UIElement {}
+
+[Serializable]
+public class UISpacer : UIElement
+{
+    public float size;
+}
+
+[Serializable]
+public class UICanvasUpdate
+{
+    public bool clear;
+    public List<UIElementUpdate> elements;
+}
+
+[Serializable]
+public class UIElementUpdate
+{
+    public UICanvas canvasProperties;
+    public UILabel label;
+    public UIToggle toggle;
+    public UIButton button;
+    public UIListItem listItem;
+    public UISeparator separator;
+    public UISpacer spacer;
+}
+
+#endregion UI Elements

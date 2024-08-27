@@ -26,6 +26,9 @@ public class AppMouseKeyboard : MonoBehaviour
     [Tooltip("Icon that is displayed when connection is lost.")]
     [SerializeField] private GameObject _offlineIcon;
 
+    [Tooltip("Container of UI prefab references.")]
+    [SerializeField] private UIPrefabs _uiPrefabs;
+
     [Tooltip("External plugin for rendering outlines.")]
     [SerializeField] private UnityFx.Outline.OutlineLayerCollection _outlineLayers;
 
@@ -43,6 +46,7 @@ public class AppMouseKeyboard : MonoBehaviour
 
     // Producer/Consumers
     UIElementDrawer _uiElementDrawer;
+    CanvasManager _canvasManager;
 
     // Application state
     ConfigLoader _configLoader;
@@ -55,6 +59,7 @@ public class AppMouseKeyboard : MonoBehaviour
     {
         // Initialize Producer/Consumers.
         _uiElementDrawer = new UIElementDrawer(_camera);
+        _canvasManager = new CanvasManager(_camera, _uiPrefabs);
 
         // Initialize IKeyframeMessageConsumers.
         _serverKeyframeIdHandler = new ServerKeyframeIdHandler();
@@ -73,6 +78,7 @@ public class AppMouseKeyboard : MonoBehaviour
             _loadingScreenOverlay,
             _viewportHandler,
             _uiElementDrawer,
+            _canvasManager,
         };
 
         // Initialize IClientStateProducers.
@@ -83,12 +89,13 @@ public class AppMouseKeyboard : MonoBehaviour
             _inputTrackerMouse,
             _inputTrackerKeyboard,
             _uiElementDrawer,
+            _canvasManager,
         };
 
         // Initialize application state.
         _configLoader = new ConfigLoader(_defaultServerLocations);
         _gfxReplayPlayer = new GfxReplayPlayer(keyframeMessageConsumers, _outlineLayers);
-        _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers, _serverKeyframeIdHandler);
+        _networkClient = new NetworkClient(_gfxReplayPlayer, _configLoader, clientStateProducers, _serverKeyframeIdHandler, _canvasManager);
         _onlineStatusDisplayHandler = new OnlineStatusDisplayHandler(_offlineIcon, _camera);
         _replayFileLoader = new ReplayFileLoader(_gfxReplayPlayer, _testKeyframe);
     }

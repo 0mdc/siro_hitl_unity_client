@@ -157,7 +157,7 @@ public class UIElementDrawer : IKeyframeMessageConsumer, IClientStateProducer
     {
         _uiElements.buttonsPressed = _modalDialogue.ClickedButtons;
         _uiElements.textboxes = _modalDialogue.Textboxes;
-        state.ui = _uiElements;
+        state.legacyUi = _uiElements;
     }
 
     public void OnEndFrame()
